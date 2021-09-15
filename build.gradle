@@ -1,0 +1,41 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id "edu.sc.seis.launch4j" version "2.5.0"
+}
+
+group 'org.wuerthner.ambitusdesktop'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.wuerthner.score:score:1.1.0-SNAPSHOT'
+    implementation 'org.wuerthner.sport:sport:1.0.0-SNAPSHOT'
+    implementation 'org.wuerthner.ambitus:ambitusmodel:1.1.0-SNAPSHOT'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+launch4j { //used for windows
+    mainClassName = 'org.wuerthner.ambitusdesktop.Ambitus'
+    bundledJrePath = 'jdk-11'
+    bundledJre64Bit = true
+    jreMinVersion = '11'
+}
+
+
+//task addJreToDistributable(type: Copy) {
+//    from zipTree("resources/desktop-deployment/OpenJDK11U-jre_x64_windows_hotspot_11.0.4_11.zip")
+//    destinationDir = file("$buildDir/launch4j")
+//}
+
+//packageExecutableDistribution.dependsOn createExe
+//packageExecutableDistribution.dependsOn addJreToDistributable
+
+test {
+    useJUnitPlatform()
+}
