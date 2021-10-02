@@ -4,6 +4,7 @@ import org.wuerthner.ambitus.model.Arrangement;
 import org.wuerthner.ambitus.model.MidiTrack;
 import org.wuerthner.ambitusdesktop.ScorePanel;
 import org.wuerthner.cwn.api.TimeSignature;
+import org.wuerthner.cwn.score.ScoreUpdate;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -28,6 +29,7 @@ public class TrackWidget {
         JPanel panel = new JPanel();
         panel.setBackground(Color.gray);
         FocusListener focusListener = new MainFocus();
+        Arrangement arrangement = (Arrangement)track.getParent();
 
         // Name
         JTextField nameField = new JTextField(track.getName(), 8);
@@ -38,7 +40,7 @@ public class TrackWidget {
         nameField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ((Arrangement)track.getParent()).setTrackName(track, nameField.getText());
+                arrangement.setTrackName(track, nameField.getText());
                 content.updateUI();
                 panel.requestFocus();
             }
@@ -76,8 +78,8 @@ public class TrackWidget {
         clefBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ((Arrangement)track.getParent()).setTrackClef(track, clefBox.getSelectedIndex());
-                content.touchScore();
+                arrangement.setTrackClef(track, clefBox.getSelectedIndex());
+                content.updateScore(new ScoreUpdate(track));
                 panel.requestFocus();
             }
         });
@@ -93,8 +95,8 @@ public class TrackWidget {
         keyBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ((Arrangement)track.getParent()).setTrackKey(track, keyBox.getSelectedIndex());
-                content.touchScore();
+                arrangement.setTrackKey(track, keyBox.getSelectedIndex());
+                content.updateScore(new ScoreUpdate(track));
                 panel.requestFocus();
             }
         });
@@ -109,8 +111,8 @@ public class TrackWidget {
         tsField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ((Arrangement)track.getParent()).setTrackMetric(track, tsField.getText());
-                content.touchScore();
+                arrangement.setTrackMetric(track, tsField.getText());
+                content.updateScore(new ScoreUpdate(track));
                 panel.requestFocus();
             }
         });

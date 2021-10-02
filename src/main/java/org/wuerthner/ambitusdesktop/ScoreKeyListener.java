@@ -4,6 +4,7 @@ import org.wuerthner.ambitus.model.MidiTrack;
 import org.wuerthner.ambitus.model.NoteEvent;
 import org.wuerthner.ambitus.tool.SelectionTools;
 import org.wuerthner.ambitusdesktop.score.AmbitusSelection;
+import org.wuerthner.cwn.score.ScoreUpdate;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -13,6 +14,7 @@ import java.awt.event.KeyListener;
 public class ScoreKeyListener {
     private final JPanel panel;
     private final ScoreModel scoreModel;
+    private final ToolbarUpdater toolbarUpdater;
     private final SelectionTools selectionTools = new SelectionTools();
     private final String kLeft = "left";
     private final String kLeftCtrl = "leftCtrl";
@@ -30,10 +32,12 @@ public class ScoreKeyListener {
     private final String kH = "h";
     private final String kSharp = "#";
     private final String kFlat = "b";
+    private final String kRefresh = "F5";
 
-    public ScoreKeyListener(JPanel scorePanel, ScoreModel scoreModel) {
+    public ScoreKeyListener(JPanel scorePanel, ScoreModel scoreModel, ToolbarUpdater toolbarUpdater) {
         this.panel = scorePanel;
         this.scoreModel = scoreModel;
+        this.toolbarUpdater = toolbarUpdater;
         ActionMap actionMap = scorePanel.getActionMap();
         int condition = JComponent.WHEN_IN_FOCUSED_WINDOW;
         InputMap inputMap = scorePanel.getInputMap(condition );
@@ -54,6 +58,7 @@ public class ScoreKeyListener {
         add(scorePanel, kPgDown, KeyEvent.VK_PAGE_DOWN, 0);
         add(scorePanel, kSharp, KeyEvent.VK_NUMBER_SIGN, KeyEvent.CTRL_DOWN_MASK);
         add(scorePanel, kFlat, KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK);
+        add(scorePanel, kRefresh, KeyEvent.VK_F5, 0);
     }
 
     private void add(JPanel panel, String key, int code, int modifiers) {
@@ -81,19 +86,19 @@ public class ScoreKeyListener {
                     break;
                 case kLeftCtrl:
                     selectionTools.moveNoteLeft(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
                     break;
                 case kRightCtrl:
                     selectionTools.moveNoteRight(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
                     break;
                 case kLeftShift:
                     selectionTools.shrinkNote(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
                     break;
                 case kRightShift:
                     selectionTools.extendNote(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
                     break;
                 case kUp:
                     selectionTools.moveCursorUp(track, selection);
@@ -103,11 +108,11 @@ public class ScoreKeyListener {
                     break;
                 case kUpCtrl:
                     selectionTools.moveNoteUp(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection));
                     break;
                 case kDownCtrl:
                     selectionTools.moveNoteDown(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection));
                     break;
                 case kPgUp:
                     staffIndex--;
@@ -121,23 +126,27 @@ public class ScoreKeyListener {
                     break;
                 case kD:
                     selectionTools.doubleDuration(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
                     break;
                 case kH:
                     selectionTools.halfDuration(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
                     break;
                 case kSharp:
                     selectionTools.sharp(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection));
                     break;
                 case kFlat:
                     selectionTools.flat(scoreModel.getArrangement());
-                    scoreModel.touchScore();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection));
+                    break;
+                case kRefresh:
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
                     break;
                 default:
             }
             panel.updateUI();
+            toolbarUpdater.updateToolbar();
         }
     }
 }

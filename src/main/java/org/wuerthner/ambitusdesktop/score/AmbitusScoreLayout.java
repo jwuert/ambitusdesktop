@@ -3,11 +3,11 @@ package org.wuerthner.ambitusdesktop.score;
 import org.wuerthner.cwn.api.ScoreLayout;
 
 public class AmbitusScoreLayout implements ScoreLayout {
-    private final int width;
-    private final double ppt;
-    private final boolean hasLyrics;
-    private final int lyricsSpace = 5;
-    private final boolean showVelocity;
+    private int width;
+    private double ppt;
+    private boolean hasLyrics;
+    private int lyricsSpace = 5;
+    private boolean showVelocity;
 
     public AmbitusScoreLayout(int width, int ppq, boolean showVelocity) {
         this.width = width;
@@ -71,4 +71,15 @@ public class AmbitusScoreLayout implements ScoreLayout {
         return true;
     }
 
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setPPQ(double ppq) {
+        this.ppt = 0.004 * 960.0 / ppq;
+    }
+
+    public void setShowVelocity(boolean showVelocity) {
+        this.showVelocity = showVelocity;
+    }
 }

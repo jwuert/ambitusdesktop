@@ -110,6 +110,7 @@ public class SequenceService {
 
     private MidiEvent createTempoEvent(long lTick, int tempo) {
         MetaMessage message = new MetaMessage();
+        if (tempo==0) { tempo = 100; }
         int mpq = (int) (60000000 / tempo);
         try {
             message.setMessage(0x51, new byte[] { (byte) (mpq >> 16 & 0xff), (byte) (mpq >> 8 & 0xff), (byte) (mpq & 0xff) }, 3);

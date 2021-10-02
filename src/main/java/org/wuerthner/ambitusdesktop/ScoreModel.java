@@ -10,6 +10,7 @@ import org.wuerthner.cwn.position.PositionTools;
 import org.wuerthner.cwn.score.Location;
 import org.wuerthner.cwn.score.Score;
 import org.wuerthner.cwn.score.ScoreBuilder;
+import org.wuerthner.cwn.score.ScoreUpdate;
 import org.wuerthner.cwn.timesignature.SimpleTimeSignature;
 import org.wuerthner.sport.api.*;
 import org.wuerthner.sport.core.XMLElementWriter;
@@ -30,24 +31,47 @@ public class ScoreModel {
     private NoteSelector gridSelector = NoteSelector.N8;
     private String fileName = null;
     private double zoom = 0; // 0=auto, 1, 2
+    private int numberOfSystems = 9999;
 
     private Arrangement arrangement = null;
     private ScoreBuilder scoreBuilder;
-    private ScoreLayout scoreLayout;
-    private ScoreParameter scoreParameter = null;
+    private AmbitusScoreLayout scoreLayout;
     private int width = 0;
-    private boolean dirty = false;
 
     AmbitusFactory factory = new AmbitusFactory();
 
-    public ScoreModel() {
+    public ScoreModel(int width) {
         arrangement = factory.createElement(Arrangement.TYPE);
         arrangement.setSelection(new AmbitusSelection());
         setNoteSelector(NoteSelector.N4);
+        this.width = width;
+        scoreLayout = new AmbitusScoreLayout((int) (width * 1.0 / getZoom()), getPPQ(), false);
+        ScoreParameter scoreParameter = new ScoreParameter(
+                getPPQ(),
+                arrangement.getResolutionInTicks(),
+                arrangement.getAttributeValue(Arrangement.groupLevel),
+                arrangement.getStretchFactor(),
+                Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
+                Arrays.asList(new DurationType[]{DurationType.REGULAR, DurationType.DOTTED}),
+                false, 0);
+        scoreBuilder = new ScoreBuilder(arrangement, scoreParameter, scoreLayout, numberOfSystems);
     }
 
-    public void touchScore() {
-        dirty = true;
+    public void clear(int width) {
+        arrangement = factory.createElement(Arrangement.TYPE);
+        arrangement.setSelection(new AmbitusSelection());
+        setNoteSelector(NoteSelector.N4);
+        this.width = width;
+        scoreLayout = new AmbitusScoreLayout((int) (width * 1.0 / getZoom()), getPPQ(), false);
+        ScoreParameter scoreParameter = new ScoreParameter(
+                getPPQ(),
+                arrangement.getResolutionInTicks(),
+                arrangement.getAttributeValue(Arrangement.groupLevel),
+                arrangement.getStretchFactor(),
+                Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
+                Arrays.asList(new DurationType[]{DurationType.REGULAR, DurationType.DOTTED}),
+                false, 0);
+        scoreBuilder = new ScoreBuilder(arrangement, scoreParameter, scoreLayout, numberOfSystems);
     }
 
     public ScoreLayout getLayout() {
@@ -61,7 +85,7 @@ public class ScoreModel {
     public Clipboard<Event> getClipboard() { return arrangement.getClipboard(); }
 
     public ScoreParameter getScoreParameter() {
-        return scoreParameter;
+        return getScoreBuilder().getScoreParameter();
     }
 
     public boolean debug() {
@@ -102,12 +126,13 @@ public class ScoreModel {
             zoom = 0;
     }
 
-    public ScoreBuilder getScoreBuilder(int width) {
-        if (this.width != width || dirty) {
-            init(width);
-            dirty = false;
+    public void toggleList() {
+        if (numberOfSystems==1) {
+            numberOfSystems = 9999;
+        } else {
+            numberOfSystems = 1;
         }
-        return getScoreBuilder();
+        if (scoreBuilder!=null) { scoreBuilder.setNumberOfSystems(numberOfSystems); }
     }
 
     public ScoreBuilder getScoreBuilder() {
@@ -117,18 +142,19 @@ public class ScoreModel {
     public List<CwnTrack> getTrackList() {
         List<CwnTrack> trackList;
         if (arrangement != null) {
-            trackList = arrangement.getChildrenByClass(CwnTrack.class);
+            trackList = arrangement.getTrackList();
         } else {
             trackList = new ArrayList<>();
         }
         return trackList;
     }
 
-    public void init(int width) {
+    public void updateWidth(int width) {
         if (this.width!=width) {
             this.width = width;
-        }
-        scoreLayout = new AmbitusScoreLayout((int) (width * 1.0 / getZoom()), getPPQ(), false);
+            scoreLayout.setWidth(width);
+            scoreBuilder.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+/*
         List<CwnTrack> trackList = getTrackList();
         if (!trackList.isEmpty()) {
             int offset = arrangement.getAttributeValue(Arrangement.offset);
@@ -143,7 +169,16 @@ public class ScoreModel {
                     Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
                     Arrays.asList(new DurationType[]{DurationType.REGULAR, DurationType.DOTTED}), markup);
         }
-        scoreBuilder = new ScoreBuilder(trackList, scoreParameter, scoreLayout);
+        if (scoreBuilder==null || scoreBuilder.getScoreParameter()==null) {
+            scoreBuilder = new ScoreBuilder(trackList, scoreParameter, scoreLayout);
+        } else {
+            ScoreUpdate update = ScoreUpdate.FULL;
+            scoreBuilder.update(update, scoreParameter);
+        }
+ */
+//            ScoreUpdate update = ScoreUpdate.FULL.set(arrangement.getActiveMidiTrackList());
+//            scoreBuilder.update(update);
+        }
     }
 
     public void setNoteSelector(NoteSelector noteSelector) {
@@ -169,7 +204,7 @@ public class ScoreModel {
     public void addTrack() {
         if (arrangement!=null) {
             arrangement.addTrack(factory);
-            init(width);
+            // init(width);
         }
     }
 
@@ -194,8 +229,8 @@ public class ScoreModel {
                 selection.unsetMouseFrame();
                 int i = arrangement.getChildrenByClass(MidiTrack.class).indexOf(track);
                 selection.set(noteEvent, i, CwnSelection.SelectionType.NOTE);
+                scoreBuilder.update(new ScoreUpdate(track, selection));
             }
-            refresh();
         }
     }
 
@@ -227,20 +262,12 @@ public class ScoreModel {
         }
     }
 
-    public void refresh() {
-        if (scoreParameter!=null && scoreLayout!=null) {
-            scoreBuilder = new ScoreBuilder(getTrackList(), scoreParameter, scoreLayout);
-        }
-    }
-
     public void undo() {
         arrangement.undo();
-        refresh();
     }
 
     public void redo() {
         arrangement.redo();
-        refresh();
     }
 
     public void play() {
@@ -260,7 +287,7 @@ public class ScoreModel {
     }
 
     public void setBarProperties(String trackId, long barPosition, String metric, int key, int clef, int bar, int tempo) {
-        System.out.println("bar prop. " + trackId + ", " + barPosition + ", " + metric + ", key: " + key + ", clef: " + clef + ", bar: " + bar + ", tempo: " + tempo);
+        // System.out.println("bar prop. " + trackId + ", " + barPosition + ", " + metric + ", key: " + key + ", clef: " + clef + ", bar: " + bar + ", tempo: " + tempo);
         arrangement.setBarProperties(trackId, barPosition, metric, key, clef, CwnBarEvent.TYPES[bar], tempo, factory);
     }
 
@@ -342,13 +369,14 @@ public class ScoreModel {
 //        }
 //    }
 
-    public void newArrangement(String title, String subtitle, String composer, int tempo, int keySelection, int templateSelection) {
+    public Arrangement createArrangement(String title, String subtitle, String composer, int tempo, int keySelection, int templateSelection) {
         Template template = Template.createTemplate(templateSelection);
         TimeSignature timeSignature = new SimpleTimeSignature("4/4");
-        arrangement = template.apply(keySelection, tempo, timeSignature, factory);
+        Arrangement arrangement = template.apply(keySelection, tempo, timeSignature, factory);
         arrangement.init(title, subtitle, composer);
         arrangement.setSelection(new AmbitusSelection());
-        init(width);
+        // updateWidth(width);
+        return arrangement;
     }
 
     public void select(Location fromPosition, Location toPosition) {
@@ -386,12 +414,12 @@ public class ScoreModel {
         return arrangement==null ? "" : arrangement.getAttributeValue(Arrangement.composer)==null ? "" : arrangement.getAttributeValue(Arrangement.composer);
     }
 
-    public void deleteSelection() {
-        arrangement.deleteElements(arrangement.getSelection().getSelection());
+    public List<CwnTrack> deleteSelection() {
+        return arrangement.deleteElements(arrangement.getSelection().getSelection());
     }
 
-    public void cutSelection() {
-        arrangement.cut();
+    public List<CwnTrack> cutSelection() {
+        return arrangement.cut();
     }
 
     public void copySelection() {
@@ -460,5 +488,6 @@ public class ScoreModel {
     public void setArrangement(Arrangement arrangement) {
         this.arrangement = arrangement;
         arrangement.setSelection(new AmbitusSelection());
+        scoreBuilder.setContainer(arrangement);
     }
 }

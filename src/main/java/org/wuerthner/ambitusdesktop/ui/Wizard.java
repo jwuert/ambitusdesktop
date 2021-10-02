@@ -8,9 +8,7 @@ import org.wuerthner.ambitusdesktop.ScorePanel;
 
 
 public class Wizard {
-    public Wizard(ScoreModel scoreModel, ScorePanel content) {
-        System.out.println("Wizard!");
-
+    public static Arrangement createArrangement(ScoreModel scoreModel, ScorePanel content) {
         ParameterDialog pd = new ParameterDialog(new String[]{"Sheet Music Wizard"},
                 new String[]{"Title", "Subtitle", "Composer", "Tempo", "Key", "Template"},
                 new Object[]{"Untitled", "", "", "120",
@@ -27,8 +25,9 @@ public class Wizard {
             int templateSelection = ParameterDialog.get(Template.TEMPLATES, parameters[5]);
             if (keySelection >= 0 && templateSelection >= 0) {
                 Template template = Template.createTemplate(templateSelection);
-                scoreModel.newArrangement(title, subtitle, composer, tempo, keySelection, templateSelection);
+                return scoreModel.createArrangement(title, subtitle, composer, tempo, keySelection, templateSelection);
             }
         }
+        return null;
     }
 }

@@ -57,7 +57,7 @@ public class MidiDeviceHandler implements DeviceHandler {
     }
 
     public void update() {
-        System.out.println("update midi devices...");
+        // System.out.println("update midi devices...");
         infoArray = MidiSystem.getMidiDeviceInfo();
     }
 

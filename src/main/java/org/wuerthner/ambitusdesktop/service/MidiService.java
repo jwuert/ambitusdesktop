@@ -63,7 +63,7 @@ public class MidiService {
 
         // DeviceHandler deviceHandler = BaseRegistry.getInstance().getAttachment(DeviceHandler.class);
         // // deviceHandler.stop();
-        sequenceService.dumpSequence(sequence, arrangement.getPPQ());
+        // sequenceService.dumpSequence(sequence, arrangement.getPPQ());
         deviceHandler.start(start, end, tempo, sequence, sleep, record);// midiExtractor);
 
         //
@@ -124,7 +124,7 @@ public class MidiService {
 
         @Override
         public void controlChange(ShortMessage event) {
-            System.out.println(event);
+            // System.out.println(event);
         }
 
     }
