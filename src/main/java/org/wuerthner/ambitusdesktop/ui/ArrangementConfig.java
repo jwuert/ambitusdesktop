@@ -6,11 +6,13 @@ import org.wuerthner.ambitusdesktop.ScoreModel;
 import org.wuerthner.ambitusdesktop.ScorePanel;
 import org.wuerthner.sport.attribute.AttributeBuilder;
 
+import java.awt.*;
+
 public class ArrangementConfig {
-    public ArrangementConfig(ScoreModel scoreModel, ScorePanel content) {
+    public ArrangementConfig(ScoreModel scoreModel, Component content) {
         Arrangement arr = scoreModel.getArrangement();
         ParameterDialog pd = new ParameterDialog(new String[]{"Arrangement Configuration"},
-                new String[]{"Title", "Subtitle", "Composer", "PPQ", "Group Level", "Resolution", "Tuplet Presentation",
+                new String[]{"Title", "Subtitle", "Composer", "PPQ", "Group Level", "Resolution",
                         "Spacing", "Allow Dotted Rests", "Double Dotted Notes", "Doublets", "Triplets", "Quadruplets", "Quintuplets", "Sixtublets"},
                 new Object[]{
                         arr.getAttributeValue(Arrangement.name, ""),
@@ -19,7 +21,7 @@ public class ArrangementConfig {
                         ""+arr.getAttributeValue(Arrangement.pulsePerQuarter, Arrangement.DEFAULT_PPQ),
                         ParameterDialog.makeCombo(Arrangement.LEVELS, arr.getAttributeValue(Arrangement.groupLevel)),
                         ParameterDialog.makeCombo(Arrangement.GRIDS, arr.getAttributeValue(Arrangement.resolution)),
-                        ParameterDialog.makeCombo(Arrangement.TUPLET_PRESENTATION, arr.getAttributeValue(Arrangement.tupletPresentation)),
+                        // ParameterDialog.makeCombo(Arrangement.TUPLET_PRESENTATION, arr.getAttributeValue(Arrangement.tupletPresentation)),
                         ParameterDialog.makeCombo(Arrangement.STRETCH_FACTORS, arr.getAttributeValue(Arrangement.stretchFactor)),
                         arr.getAttributeValue(Arrangement.flagAllowDottedRests),
                         arr.getAttributeValue(Arrangement.durationBiDotted),
@@ -38,16 +40,15 @@ public class ArrangementConfig {
             Integer ppq = Integer.valueOf(parameters[3]);
             int level = ParameterDialog.get(Arrangement.LEVELS, parameters[4]);
             int resolution = ParameterDialog.get(Arrangement.GRIDS, parameters[5]);
-            int tupletPres = ParameterDialog.get(Arrangement.TUPLET_PRESENTATION, parameters[6]);
-            int stretchFac = ParameterDialog.get(Arrangement.STRETCH_FACTORS, parameters[7]);
-            boolean dottedRests = Boolean.valueOf(parameters[8]);
-            boolean biDotted = Boolean.valueOf(parameters[9]);
-            boolean tuplet2 = Boolean.valueOf(parameters[10]);
-            boolean tuplet3 = Boolean.valueOf(parameters[11]);
-            boolean tuplet4 = Boolean.valueOf(parameters[12]);
-            boolean tuplet5 = Boolean.valueOf(parameters[13]);
-            boolean tuplet6 = Boolean.valueOf(parameters[14]);
-            arr.setConfiguration(title, subtitle, composer, ppq, level, resolution, tupletPres, stretchFac, dottedRests, biDotted, tuplet2, tuplet3, tuplet4, tuplet5, tuplet6);
+            int stretchFac = ParameterDialog.get(Arrangement.STRETCH_FACTORS, parameters[6]);
+            boolean dottedRests = Boolean.valueOf(parameters[7]);
+            boolean biDotted = Boolean.valueOf(parameters[8]);
+            boolean tuplet2 = Boolean.valueOf(parameters[9]);
+            boolean tuplet3 = Boolean.valueOf(parameters[10]);
+            boolean tuplet4 = Boolean.valueOf(parameters[11]);
+            boolean tuplet5 = Boolean.valueOf(parameters[12]);
+            boolean tuplet6 = Boolean.valueOf(parameters[13]);
+            arr.setConfiguration(title, subtitle, composer, ppq, level, resolution, stretchFac, dottedRests, biDotted, tuplet2, tuplet3, tuplet4, tuplet5, tuplet6);
         }
     }
 }

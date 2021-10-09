@@ -85,11 +85,11 @@ public class ScoreKeyListener {
                     selectionTools.moveCursorRight(track, selection, NoteEvent.class);
                     break;
                 case kLeftCtrl:
-                    selectionTools.moveNoteLeft(scoreModel.getArrangement());
+                    selectionTools.moveNoteLeft(scoreModel.getArrangement(), scoreModel.getGridTicks());
                     scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
                     break;
                 case kRightCtrl:
-                    selectionTools.moveNoteRight(scoreModel.getArrangement());
+                    selectionTools.moveNoteRight(scoreModel.getArrangement(), scoreModel.getGridTicks());
                     scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
                     break;
                 case kLeftShift:

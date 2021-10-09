@@ -6,9 +6,11 @@ import org.wuerthner.ambitus.template.Template;
 import org.wuerthner.ambitusdesktop.ScoreModel;
 import org.wuerthner.ambitusdesktop.ScorePanel;
 
+import java.awt.*;
+
 
 public class Wizard {
-    public static Arrangement createArrangement(ScoreModel scoreModel, ScorePanel content) {
+    public static Arrangement createArrangement(ScoreModel scoreModel, Component content) {
         ParameterDialog pd = new ParameterDialog(new String[]{"Sheet Music Wizard"},
                 new String[]{"Title", "Subtitle", "Composer", "Tempo", "Key", "Template"},
                 new Object[]{"Untitled", "", "", "120",

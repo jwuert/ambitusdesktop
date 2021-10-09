@@ -2,7 +2,9 @@ package org.wuerthner.ambitusdesktop;
 
 import org.wuerthner.ambitus.model.AmbitusFactory;
 import org.wuerthner.ambitus.model.Arrangement;
+import org.wuerthner.ambitus.model.MidiTrack;
 import org.wuerthner.ambitus.model.NoteEvent;
+import org.wuerthner.ambitus.tool.SelectionTools;
 import org.wuerthner.ambitusdesktop.score.AmbitusScoreCanvas;
 import org.wuerthner.ambitusdesktop.score.AmbitusScoreLayout;
 import org.wuerthner.ambitusdesktop.service.MidiService;
@@ -27,17 +29,79 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
     private final ScoreModel scoreModel;
     private final PanelUpdater panelUpdater;
     private final ToolbarUpdater toolbarUpdater;
+    private final SelectionTools selectionTools = new SelectionTools();
     private Optional<Location> pressLocation = Optional.empty();
     private Optional<Location> releaseLocation = Optional.empty();
     private Optional<Location> dragLocation = Optional.empty();
     private Optional<Integer> key = Optional.empty();
     private long startDisplayPosition = 0;
     private long endDisplayPosition = 0;
+    private JTextField lyricsField = null;
 
     public ScorePanel(ScoreModel scoreModel, PanelUpdater panelUpdater, ToolbarUpdater toolbarUpdater) {
         this.scoreModel = scoreModel;
         this.panelUpdater = panelUpdater;
         this.toolbarUpdater = toolbarUpdater;
+        this.lyricsField = new JTextField();
+        lyricsField.setBounds(0,0,0,0);
+        this.lyricsField.setVisible(false);
+        this.add(lyricsField);
+        lyricsField.setBounds(0,0,0,0);
+        lyricsField.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        lyricsField.setEditable(false);
+
+        InputMap imap = lyricsField.getInputMap(JComponent.WHEN_FOCUSED);
+        imap.put(KeyStroke.getKeyStroke("SPACE"), "spaceAction");
+        ActionMap amap = lyricsField.getActionMap();
+        amap.put("spaceAction", new AbstractAction(){
+            public void actionPerformed(ActionEvent e) {
+                org.wuerthner.ambitus.model.Event event = setLyrics(e);
+                if (event!=null) {
+                    MidiTrack track = (MidiTrack) event.getParent();
+                    selectionTools.moveCursorRight(track, scoreModel.getSelection(), NoteEvent.class);
+                    ScorePanel.this.updateUI();
+                }
+            }
+        });
+        imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enterAction");
+        amap.put("enterAction", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setLyrics(e);
+                scoreModel.setLyrics(false);
+                ScorePanel.this.updateUI();
+            }
+        });
+
+//        lyricsField.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                if (scoreModel.getSelection().hasSingleSelection()) {
+//                    JTextField field = (JTextField) e.getSource();
+//                    String value = field.getText();
+//                    org.wuerthner.ambitus.model.Event event = scoreModel.getSelection().getSingleSelection();
+//                    if (event instanceof NoteEvent) {
+//                        scoreModel.getArrangement().setLyrics((NoteEvent)event, value);
+//                    }
+//                    MidiTrack track = (MidiTrack) event.getParent();
+//                    selectionTools.moveCursorRight(track, scoreModel.getSelection(), NoteEvent.class);
+//                    ScorePanel.this.updateUI();
+//                }
+//            }
+//        });
+    }
+
+    private org.wuerthner.ambitus.model.Event setLyrics(ActionEvent e) {
+        org.wuerthner.ambitus.model.Event event = null;
+        if (scoreModel.getSelection().hasSingleSelection()) {
+            JTextField field = (JTextField) e.getSource();
+            String value = field.getText().trim();
+            event = scoreModel.getSelection().getSingleSelection();
+            if (event instanceof NoteEvent) {
+                scoreModel.getArrangement().setLyrics((NoteEvent)event, value);
+            }
+        }
+        return event;
     }
 
     public void updateScore(ScoreUpdate update) {
@@ -50,6 +114,7 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         super.paint(g);
         double zoom = scoreModel.getZoom();
         scoreModel.updateWidth((int)(this.getWidth()/zoom));
+        scoreModel.updateScoreParameter();
         ScoreBuilder builder = scoreModel.getScoreBuilder();
         int barOffset = scoreModel.getArrangement().getAttributeValue(Arrangement.offset);
         AmbitusScoreCanvas scoreCanvas = new AmbitusScoreCanvas(g, zoom, this.getHeight());
@@ -85,6 +150,25 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
                 } else {
                     endDisplayPosition = 0;
                     // cacheScore = false;
+                    if (scoreModel.getSelection().hasSingleSelection() && scoreModel.lyrics()) {
+                        org.wuerthner.ambitus.model.Event event = scoreModel.getSelection().getSingleSelection();
+                        if (event instanceof NoteEvent) {
+                            long pos = event.getPosition();
+                            ScoreBuilder.Coordinates coor = scoreModel.getScoreBuilder().findCoordinates(pos, scoreModel.getSelection().getSelectedStaff());
+                            lyricsField.setBounds((int)(coor.X * scoreModel.getZoom()),
+                                    (int)(coor.Y * scoreModel.getZoom()),
+                                    (int)(32 * scoreModel.getZoom()),
+                                    (int)(11 * scoreModel.getZoom()));
+                            lyricsField.setEditable(true);
+                            lyricsField.setText(((NoteEvent)event).getLyrics());
+                            lyricsField.setVisible(true);
+                            lyricsField.grabFocus();
+                            //lyricsField.paintAll(g);
+                        }
+                    } else {
+                        lyricsField.setEditable(false);
+                        lyricsField.setVisible(false);
+                    }
                 }
             }
             toolbarUpdater.updateNoteBar();
@@ -94,14 +178,11 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
     }
 
     private int getX(MouseEvent e) {
-        // return (int) ((e.getX()-this.getLocation().getX())/scoreModel.getZoom()) + 1;
         return (int)( e.getX()/scoreModel.getZoom() + 1 );
     }
 
     private int getY(MouseEvent e) {
-        // int y = (int) ((e.getY()-this.getLocation().getY())/scoreModel.getZoom());
         int y = (int) (e.getY()/scoreModel.getZoom()) + 26;
-        // y = (scoreModel.getZoom()==1 ? y-9 : y+9);
         return y;
     }
 

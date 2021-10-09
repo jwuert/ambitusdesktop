@@ -29,8 +29,11 @@ public class ScoreModel {
 
     private NoteSelector noteSelector = NoteSelector.N8;
     private NoteSelector gridSelector = NoteSelector.N8;
+    private NoteSelector tupletSelector = NoteSelector.T1;
+
     private String fileName = null;
     private double zoom = 0; // 0=auto, 1, 2
+    private boolean lyrics = false;
     private int numberOfSystems = 9999;
 
     private Arrangement arrangement = null;
@@ -38,40 +41,46 @@ public class ScoreModel {
     private AmbitusScoreLayout scoreLayout;
     private int width = 0;
 
-    AmbitusFactory factory = new AmbitusFactory();
+    public final AmbitusFactory factory = new AmbitusFactory();
 
     public ScoreModel(int width) {
         arrangement = factory.createElement(Arrangement.TYPE);
         arrangement.setSelection(new AmbitusSelection());
         setNoteSelector(NoteSelector.N4);
+        setTupletSelector(NoteSelector.T1);
         this.width = width;
         scoreLayout = new AmbitusScoreLayout((int) (width * 1.0 / getZoom()), getPPQ(), false);
-        ScoreParameter scoreParameter = new ScoreParameter(
-                getPPQ(),
-                arrangement.getResolutionInTicks(),
-                arrangement.getAttributeValue(Arrangement.groupLevel),
-                arrangement.getStretchFactor(),
-                Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
-                Arrays.asList(new DurationType[]{DurationType.REGULAR, DurationType.DOTTED}),
-                false, 0);
+        ScoreParameter scoreParameter = createScoreParameter(arrangement);
         scoreBuilder = new ScoreBuilder(arrangement, scoreParameter, scoreLayout, numberOfSystems);
+        updateScoreParameter();
     }
 
     public void clear(int width) {
         arrangement = factory.createElement(Arrangement.TYPE);
         arrangement.setSelection(new AmbitusSelection());
         setNoteSelector(NoteSelector.N4);
+        setTupletSelector(NoteSelector.T1);
         this.width = width;
         scoreLayout = new AmbitusScoreLayout((int) (width * 1.0 / getZoom()), getPPQ(), false);
+        ScoreParameter scoreParameter = createScoreParameter(arrangement);
+        scoreBuilder = new ScoreBuilder(arrangement, scoreParameter, scoreLayout, numberOfSystems);
+        updateScoreParameter();
+    }
+
+    private ScoreParameter createScoreParameter(Arrangement arrangement) {
+        List<DurationType> durationTypeList = new ArrayList<>();
+
+        durationTypeList.add(DurationType.REGULAR);
+        durationTypeList.add(DurationType.DOTTED);
         ScoreParameter scoreParameter = new ScoreParameter(
                 getPPQ(),
                 arrangement.getResolutionInTicks(),
                 arrangement.getAttributeValue(Arrangement.groupLevel),
                 arrangement.getStretchFactor(),
                 Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
-                Arrays.asList(new DurationType[]{DurationType.REGULAR, DurationType.DOTTED}),
+                durationTypeList,
                 false, 0);
-        scoreBuilder = new ScoreBuilder(arrangement, scoreParameter, scoreLayout, numberOfSystems);
+        return scoreParameter;
     }
 
     public ScoreLayout getLayout() {
@@ -135,6 +144,18 @@ public class ScoreModel {
         if (scoreBuilder!=null) { scoreBuilder.setNumberOfSystems(numberOfSystems); }
     }
 
+    public void toggleLyrics() {
+        lyrics = !lyrics;
+    }
+
+    public void setLyrics(boolean b) {
+        lyrics = b;
+    }
+
+    public boolean lyrics() {
+        return lyrics;
+    }
+
     public ScoreBuilder getScoreBuilder() {
         return scoreBuilder;
     }
@@ -154,30 +175,6 @@ public class ScoreModel {
             this.width = width;
             scoreLayout.setWidth(width);
             scoreBuilder.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
-/*
-        List<CwnTrack> trackList = getTrackList();
-        if (!trackList.isEmpty()) {
-            int offset = arrangement.getAttributeValue(Arrangement.offset);
-            long startPosition = PositionTools.getPosition(trackList.get(0), new Trias(offset, 0, 0));
-            long endPosition = arrangement.findLastPosition();
-            boolean markup = false; // TODO! Also: tuplet's, rest properties, etc
-            scoreParameter = new ScoreParameter(startPosition, endPosition,
-                    getPPQ(),
-                    arrangement.getResolutionInTicks(),
-                    arrangement.getAttributeValue(Arrangement.groupLevel),
-                    arrangement.getStretchFactor(),
-                    Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
-                    Arrays.asList(new DurationType[]{DurationType.REGULAR, DurationType.DOTTED}), markup);
-        }
-        if (scoreBuilder==null || scoreBuilder.getScoreParameter()==null) {
-            scoreBuilder = new ScoreBuilder(trackList, scoreParameter, scoreLayout);
-        } else {
-            ScoreUpdate update = ScoreUpdate.FULL;
-            scoreBuilder.update(update, scoreParameter);
-        }
- */
-//            ScoreUpdate update = ScoreUpdate.FULL.set(arrangement.getActiveMidiTrackList());
-//            scoreBuilder.update(update);
         }
     }
 
@@ -191,14 +188,26 @@ public class ScoreModel {
 
     public void setGridSelector(NoteSelector gridSelector) {
         this.gridSelector = gridSelector;
+        if (arrangement!=null) {
+            arrangement.setGrid(gridSelector.getNoteIndex());
+        }
     }
 
     public NoteSelector getGridSelector() {
         return gridSelector;
     }
 
+    public void setTupletSelector(NoteSelector tupletSelector) {
+        this.tupletSelector = tupletSelector;
+    }
+
+    public NoteSelector getTupletSelector() {
+        return this.tupletSelector;
+    }
+
     public int getGridTicks() {
-        return (int) (gridSelector.getNoteLength()*4*getPPQ());
+        int ticks = (int) (gridSelector.getNoteLength()*4*getPPQ() * tupletSelector.getTupletFactor());
+        return ticks;
     }
 
     public void addTrack() {
@@ -218,7 +227,7 @@ public class ScoreModel {
                 selection.set(note, staff, CwnSelection.SelectionType.NOTE);
             } else {
                 // CREATE
-                long duration = (long) (noteSelector.getNoteLength() * getPPQ() * 4);
+                long duration = (long) (noteSelector.getNoteLength() * getPPQ() * 4 * tupletSelector.getTupletFactor());
                 NoteEvent noteEvent = factory.createElement(NoteEvent.TYPE);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.position, position);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.duration, duration);
@@ -489,5 +498,20 @@ public class ScoreModel {
         this.arrangement = arrangement;
         arrangement.setSelection(new AmbitusSelection());
         scoreBuilder.setContainer(arrangement);
+    }
+
+    public void updateScoreParameter() {
+        if (arrangement != null) {
+            Boolean t2 = arrangement.getAttributeValue(Arrangement.durationTuplet2);
+            Boolean t3 = arrangement.getAttributeValue(Arrangement.durationTuplet3);
+            Boolean t4 = arrangement.getAttributeValue(Arrangement.durationTuplet4);
+            Boolean t5 = arrangement.getAttributeValue(Arrangement.durationTuplet5);
+            Boolean t6 = arrangement.getAttributeValue(Arrangement.durationTuplet6);
+            getScoreParameter().setTuplet(t2, t3, t4, t5, t6);
+            int stretchFactor = arrangement.getAttributeValue(Arrangement.stretchFactor);
+            int groupLevel = arrangement.getAttributeValue(Arrangement.groupLevel);
+            getScoreParameter().setDisplayStretchFactor(stretchFactor);
+            getScoreParameter().setMetricLevel(groupLevel);
+        }
     }
 }

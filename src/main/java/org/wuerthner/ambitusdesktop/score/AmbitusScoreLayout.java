@@ -68,7 +68,7 @@ public class AmbitusScoreLayout implements ScoreLayout {
 
     @Override
     public boolean hasFullTupletPresentation() {
-        return true;
+        return false;
     }
 
     public void setWidth(int width) {

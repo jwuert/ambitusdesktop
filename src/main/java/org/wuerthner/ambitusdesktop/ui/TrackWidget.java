@@ -67,55 +67,55 @@ public class TrackWidget {
             }
         });
 
-        // Clef
-        int clef = track.getClef();
-        JComboBox clefBox = new JComboBox(MidiTrack.CLEFS);
-        clefBox.setSelectedIndex(clef);
-        clefBox.addFocusListener(focusListener);
-        setFocusOut(clefBox);
-        clefBox.setPreferredSize(new Dimension(100, CTRL_HEIGHT));
-        panel.add(clefBox);
-        clefBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                arrangement.setTrackClef(track, clefBox.getSelectedIndex());
-                content.updateScore(new ScoreUpdate(track));
-                panel.requestFocus();
-            }
-        });
-
-        // Key
-        int key = track.getKey();
-        JComboBox keyBox = new JComboBox(MidiTrack.KEYS);
-        keyBox.setSelectedIndex(key);
-        keyBox.addFocusListener(focusListener);
-        setFocusOut(keyBox);
-        keyBox.setPreferredSize(new Dimension(60, CTRL_HEIGHT));
-        panel.add(keyBox);
-        keyBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                arrangement.setTrackKey(track, keyBox.getSelectedIndex());
-                content.updateScore(new ScoreUpdate(track));
-                panel.requestFocus();
-            }
-        });
-
-        // Time Signature
-        TimeSignature timeSignature = track.getTimeSignature();
-        JTextField tsField = new JTextField(timeSignature.toString(), 12);
-        tsField.addFocusListener(focusListener);
-        setFocusOut(tsField);
-        tsField.setPreferredSize(new Dimension(100, CTRL_HEIGHT));
-        panel.add(tsField);
-        tsField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                arrangement.setTrackMetric(track, tsField.getText());
-                content.updateScore(new ScoreUpdate(track));
-                panel.requestFocus();
-            }
-        });
+//        // Clef
+//        int clef = track.getClef();
+//        JComboBox clefBox = new JComboBox(MidiTrack.CLEFS);
+//        clefBox.setSelectedIndex(clef);
+//        clefBox.addFocusListener(focusListener);
+//        setFocusOut(clefBox);
+//        clefBox.setPreferredSize(new Dimension(100, CTRL_HEIGHT));
+//        panel.add(clefBox);
+//        clefBox.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                arrangement.setTrackClef(track, clefBox.getSelectedIndex());
+//                content.updateScore(new ScoreUpdate(track));
+//                panel.requestFocus();
+//            }
+//        });
+//
+//        // Key
+//        int key = track.getKey();
+//        JComboBox keyBox = new JComboBox(MidiTrack.KEYS);
+//        keyBox.setSelectedIndex(key);
+//        keyBox.addFocusListener(focusListener);
+//        setFocusOut(keyBox);
+//        keyBox.setPreferredSize(new Dimension(60, CTRL_HEIGHT));
+//        panel.add(keyBox);
+//        keyBox.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                arrangement.setTrackKey(track, keyBox.getSelectedIndex());
+//                content.updateScore(new ScoreUpdate(track));
+//                panel.requestFocus();
+//            }
+//        });
+//
+//        // Time Signature
+//        TimeSignature timeSignature = track.getTimeSignature();
+//        JTextField tsField = new JTextField(timeSignature.toString(), 12);
+//        tsField.addFocusListener(focusListener);
+//        setFocusOut(tsField);
+//        tsField.setPreferredSize(new Dimension(100, CTRL_HEIGHT));
+//        panel.add(tsField);
+//        tsField.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                arrangement.setTrackMetric(track, tsField.getText());
+//                content.updateScore(new ScoreUpdate(track));
+//                panel.requestFocus();
+//            }
+//        });
 
         // Instrument
         int instrument = track.getInstrument();
