@@ -16,6 +16,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
     final private int height;
     final private BasicStroke stroke;
     final private Map<String,Integer> correctionMap = new HashMap<>();
+    final private Map<String,Integer> correctionMapM = new HashMap<>();
     private boolean outsideDrawArea = false;
 
     public AmbitusScoreCanvas(Graphics graphics, double zoom, int height) {
@@ -62,8 +63,10 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         if (zoom==2) {
             x = x -1;
             y = (int) (y + correctionMap.getOrDefault(name,0));
+        } else if (zoom==1.5) {
+            y = (int) (y + correctionMapM.getOrDefault(name,0));
         }
-        g.drawImage(imageMap.get( (zoom==2 ? "d-" : "") + name + (alternative ? "-h" : "")), x, y, null);
+        g.drawImage(imageMap.get( (zoom==1.5 ? "m-" : zoom==2 ? "d-" : "") + name + (alternative ? "-h" : "")), x, y, null);
         checkDrawArea(y);
     }
 
@@ -81,7 +84,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         //System.out.println("drawLine: " + color);
         switch(color) {
             case "red": g.setColor(Color.RED); break;
-            case "grey": g.setColor(Color.GRAY); break;
+            case "grey": g.setColor(Color.LIGHT_GRAY); break;
             case "blue": g.setColor(Color.BLUE); break;
             case "green": g.setColor(Color.GREEN); break;
             case "yellow": g.setColor(Color.YELLOW); break;
@@ -181,12 +184,15 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         imageMap.put("sharp-h", getImage("sgnSharp-h"));
         imageMap.put("flat", getImage("sgnFlat"));
         imageMap.put("flat-h", getImage("sgnFlat-h"));
+        imageMap.put("nat", getImage("sgnNat"));
+        imageMap.put("nat-h", getImage("sgnNat-h"));
         //
         imageMap.put("sign-2", getImage("sgnFlat2"));
         imageMap.put("sign-1", getImage("sgnFlat"));
         imageMap.put("sign1", getImage("sgnSharp"));
         imageMap.put("sign2", getImage("sgnSharp2"));
         imageMap.put("sign3", getImage("sgnNat"));
+
         //
         // double size
         //
@@ -223,12 +229,57 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         }
         imageMap.put("d-sharp", getImage("sgnSharp-d"));
         imageMap.put("d-flat", getImage("sgnFlat-d"));
+        imageMap.put("d-nat", getImage("sgnNat-d"));
         //
         imageMap.put("d-sign-2", getImage("sgnFlat2-d"));
         imageMap.put("d-sign-1", getImage("sgnFlat-d"));
         imageMap.put("d-sign1", getImage("sgnSharp-d"));
         imageMap.put("d-sign2", getImage("sgnSharp2-d"));
         imageMap.put("d-sign3", getImage("sgnNat-d"));
+
+        //
+        // medium size (1.5)
+        //
+        imageMap.put("m-head1", getImage("note-m-2"));
+        imageMap.put("m-head2", getImage("note-m-0"));
+        imageMap.put("m-head4", getImage("note-m-1"));
+        imageMap.put("m-head8", getImage("note-m-1"));
+        imageMap.put("m-head16", getImage("note-m-1"));
+        imageMap.put("m-head32", getImage("note-m-1"));
+        imageMap.put("m-head64", getImage("note-m-1"));
+        //
+        imageMap.put("m-head1-h", getImage("note-m-2-h"));
+        imageMap.put("m-head2-h", getImage("note-m-0-h"));
+        imageMap.put("m-head4-h", getImage("note-m-1-h"));
+        imageMap.put("m-head8-h", getImage("note-m-1-h"));
+        imageMap.put("m-head16-h", getImage("note-m-1-h"));
+        imageMap.put("m-head32-h", getImage("note-m-1-h"));
+        imageMap.put("m-head64-h", getImage("note-m-1-h"));
+        // rests
+        imageMap.put("m-rest1", getImage("b-m-1"));
+        imageMap.put("m-rest2", getImage("b-m-2"));
+        imageMap.put("m-rest4", getImage("b-m-4"));
+        imageMap.put("m-rest8", getImage("b-m-8"));
+        imageMap.put("m-rest16", getImage("b-m-16"));
+        imageMap.put("m-rest32", getImage("b-m-32"));
+        imageMap.put("m-rest64", getImage("b-m-64"));
+        //
+        imageMap.put("m-flag1", getImage("flagX-m"));
+        imageMap.put("m-flag-1", getImage("flagI-m"));
+        //
+        for (int c = 0; c < 14; c++) {
+            imageMap.put("m-clef" + c, getImage("clef-m-" + c));
+            imageMap.put("m-clef" + c + "-h", getImage("clef-m-" + c + "-h"));
+        }
+        imageMap.put("m-sharp", getImage("sgnSharp-m"));
+        imageMap.put("m-flat", getImage("sgnFlat-m"));
+        imageMap.put("m-nat", getImage("sgnNat-m"));
+        //
+        imageMap.put("m-sign-2", getImage("sgnFlat2-m"));
+        imageMap.put("m-sign-1", getImage("sgnFlat-m"));
+        imageMap.put("m-sign1", getImage("sgnSharp-m"));
+        imageMap.put("m-sign2", getImage("sgnSharp2-m"));
+        imageMap.put("m-sign3", getImage("sgnNat-m"));
 
         // Y-Pos Correction:
         correctionMap.put("head1", -2);
@@ -247,6 +298,24 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         correctionMap.put("rest32", 2);
         correctionMap.put("rest64", 2);
 
+        // Y-Pos Correction (Medium, zoom=1.5):
+        // rests
+        correctionMapM.put("rest1", 2);
+        correctionMapM.put("rest2", 3);
+        correctionMapM.put("rest4", 3);
+        correctionMapM.put("rest8", 4);
+        correctionMapM.put("rest16", 3);
+        correctionMapM.put("rest32", 3);
+        correctionMapM.put("rest64", 3);
+
+        correctionMapM.put("flat", 3);
+        correctionMapM.put("sharp", 3);
+        correctionMapM.put("nat", 3);
+        correctionMapM.put("sign-2", 2);
+        correctionMapM.put("sign-1", 2);
+        correctionMapM.put("sign1", 2);
+        correctionMapM.put("sign2", 2);
+        correctionMapM.put("sign3", 2);
 
         // FONTS
 

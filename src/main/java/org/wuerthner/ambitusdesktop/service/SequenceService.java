@@ -24,6 +24,7 @@ public class SequenceService {
             Track tempoTrack = sequence.createTrack();
             for (MidiTrack midiTrack : arrangement.getActiveMidiTrackList()) {
                 double volumeWeight = 1.0; // TODO: (hasExposedTracks ? isExposed(midiTrack, selection) ? exposeFactor : 1.0 / exposeFactor : 1.0);
+                double volume = midiTrack.getVolume()*0.1;
                 int program = midiTrack.getInstrument();
                 int channel = midiTrack.getChannel();
                 boolean mute = midiTrack.getMute();
@@ -42,7 +43,7 @@ public class SequenceService {
                                 // long end = noteEvent.getEnd() - 1;
                                 if (playAll || (start >= startPosition && end <= endPosition)) {
                                     int pitch = noteEvent.getPitch();
-                                    int velocity = (int) (noteEvent.getVelocity() * volumeWeight);
+                                    int velocity = (int) (noteEvent.getVelocity() * volumeWeight * volume);
                                     if (velocity > 127) {
                                         velocity = 127;
                                     }

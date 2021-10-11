@@ -1,46 +1,25 @@
 package org.wuerthner.ambitusdesktop;
 
 import org.wuerthner.ambitus.model.Arrangement;
-import org.wuerthner.ambitus.model.MidiTrack;
-import org.wuerthner.ambitus.model.NoteEvent;
-import org.wuerthner.ambitus.service.Quantize;
 import org.wuerthner.ambitus.type.NamedRange;
-import org.wuerthner.ambitusdesktop.service.MidiService;
 import org.wuerthner.ambitusdesktop.ui.*;
-import org.wuerthner.cwn.api.CwnBarEvent;
-import org.wuerthner.cwn.api.CwnSelection;
-import org.wuerthner.cwn.api.CwnTrack;
 import org.wuerthner.cwn.api.Trias;
 import org.wuerthner.cwn.position.PositionTools;
 import org.wuerthner.cwn.score.Location;
 import org.wuerthner.cwn.score.ScoreUpdate;
-import org.wuerthner.sport.api.ModelElement;
-import org.wuerthner.sport.api.Modifier;
-import org.wuerthner.sport.core.XMLElementWriter;
-import org.wuerthner.sport.core.XMLReader;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.metal.MetalLookAndFeel;
+import javax.swing.plaf.metal.OceanTheme;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
     static int WIDTH = 1600; //1600;
-    static int HEIGHT = 600; //1024;
+    static int HEIGHT = 1024; //1024;
 
     private final ScorePanel content;
-    private final JScrollPane trackPanel;
-    private final JPanel navigation;
     private final JPanel rangePanel;
     private final ScoreModel scoreModel = new ScoreModel(WIDTH);
 
@@ -49,30 +28,16 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
 
     public Ambitus() {
         final JFrame frame = new JFrame("Ambitus");
-
-
-        navigation = new JPanel();
-        BoxLayout layout = new BoxLayout(navigation, BoxLayout.Y_AXIS);
-        navigation.setLayout(layout);
-        navigation.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         updatePanel();
-        trackPanel = new JScrollPane(navigation, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-
         content = makeContent();
         JComponent toolbar = makeToolBar();
 
         rangePanel = new JPanel();
         rangePanel.setPreferredSize(new Dimension(200, HEIGHT));
-
-
+        rangePanel.setVisible(false);
         frame.setLayout(new BorderLayout());
         frame.getContentPane().add(toolbar, BorderLayout.PAGE_START);
-        JSplitPane splitpane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitpane.setLeftComponent(trackPanel);
-        splitpane.setRightComponent(content);
-        splitpane.setDividerLocation(160);
-        frame.getContentPane().add(splitpane, BorderLayout.CENTER);
+        frame.getContentPane().add(content, BorderLayout.CENTER);
         frame.getContentPane().add(rangePanel, BorderLayout.EAST);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -81,6 +46,7 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
         content.addMouseMotionListener(content);
         content.addMouseListener(content);
         new ScoreKeyListener(content, scoreModel, this);
+        updateToolbar();
     }
 
     private JComponent makeToolBar() {
@@ -113,20 +79,6 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
     }
 
     public void updatePanel() {
-        navigation.removeAll();
-        JLabel label = new JLabel("Track Mixer");
-        label.setBorder(BorderFactory.createEmptyBorder(8, 20, 2, 2));
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-        navigation.add(label);
-        for (MidiTrack track : scoreModel.getArrangement().getActiveMidiTrackList()) {
-            JPanel track1 = TrackWidget.createTrack(track, content);
-            track1.setAlignmentX(Component.LEFT_ALIGNMENT);
-            navigation.add(track1);
-        }
-        JLabel space = new JLabel();
-        space.setPreferredSize(new Dimension(20, HEIGHT));
-        space.setAlignmentX(Component.LEFT_ALIGNMENT);
-        navigation.add(space);
         //
         // RANGE BUTTONS
         //

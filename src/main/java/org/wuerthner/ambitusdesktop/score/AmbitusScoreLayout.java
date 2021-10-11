@@ -38,7 +38,7 @@ public class AmbitusScoreLayout implements ScoreLayout {
 
     @Override
     public int getSystemIndent() {
-        return 80;
+        return 100;
     }
 
     @Override

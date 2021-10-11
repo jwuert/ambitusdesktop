@@ -8,6 +8,7 @@ import org.wuerthner.ambitus.service.Quantize;
 import org.wuerthner.ambitus.type.NamedRange;
 import org.wuerthner.ambitusdesktop.*;
 import org.wuerthner.ambitusdesktop.service.MidiService;
+import org.wuerthner.cwn.api.CwnEvent;
 import org.wuerthner.cwn.api.CwnTrack;
 import org.wuerthner.cwn.api.Trias;
 import org.wuerthner.cwn.position.PositionTools;
@@ -15,8 +16,12 @@ import org.wuerthner.cwn.score.ScoreUpdate;
 import org.wuerthner.sport.api.Modifier;
 import org.wuerthner.sport.core.XMLElementWriter;
 import org.wuerthner.sport.core.XMLReader;
+import org.wuerthner.sport.core.XMLWriter;
 
 import javax.swing.*;
+import javax.swing.plaf.metal.MetalLookAndFeel;
+import javax.swing.plaf.metal.OceanTheme;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,6 +34,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 public class FunctionToolBar {
     private final JToolBar functionToolbar;
@@ -81,6 +87,7 @@ public class FunctionToolBar {
                         XMLReader reader = new XMLReader(scoreModel.factory, Arrangement.TYPE, "root");
                         Arrangement root = (Arrangement) reader.run(inputStream);
                         if (root != null) {
+                            scoreModel.setFile(selectedFile);
                             scoreModel.setArrangement(root);
                             scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
                             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
@@ -99,31 +106,15 @@ public class FunctionToolBar {
         toolMap.put("open", openBtn);
         functionToolbar.add(openBtn);
 
-        // Write
+        // Save
         JButton writeBtn = makeButton("toolbar/write", "Save File",24);
         AbstractAction writeAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFileChooser fileChooser = new JFileChooser();
-                // fileChooser.setDialogTitle("Specify a file to save");
-                Action details = fileChooser.getActionMap().get("viewTypeDetails");
-                details.actionPerformed(null);
-                int userSelection = fileChooser.showSaveDialog(content);
-                if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    File fileToSave = fileChooser.getSelectedFile();
-                    if (fileToSave!=null) {
-                        try {
-                            FileOutputStream outputStream = new FileOutputStream(fileToSave);
-                            Arrangement arrangement = scoreModel.getArrangement();
-                            XMLElementWriter w = new XMLElementWriter();
-                            w.run(arrangement, outputStream);
-                            scoreModel.getArrangement().clearHistory();
-                            panelUpdater.updatePanel();
-                            updateToolbar();
-                        } catch (IOException ioe) {
-                            ioe.printStackTrace();
-                        }
-                    }
+                File fileToSave = scoreModel.getFile();
+                saveFile(fileToSave, content, "Save file");
+                if (scoreModel.getFile() == null) {
+                    scoreModel.setFile(fileToSave);
                 }
             }
         };
@@ -133,13 +124,35 @@ public class FunctionToolBar {
         toolMap.put("write", writeBtn);
         functionToolbar.add(writeBtn);
 
+        // Save As...
+        JButton writeAsBtn = makeButton("toolbar/writeAs", "Save File As",24);
+        AbstractAction writeAsAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveFile(null, content, "Save file as...");
+            }
+        };
+        writeAsBtn.addActionListener(writeAsAction);
+        writeAsBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.ALT_DOWN_MASK), "writeAs");
+        writeAsBtn.getActionMap().put("writeAs", writeAsAction);
+        toolMap.put("writeAs", writeAsBtn);
+        functionToolbar.add(writeAsBtn);
+
         // Close Document
         JButton closeDocument = makeButton("toolbar/close", "Close Document",24);
         AbstractAction closeDocumentAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int dialogResult = JOptionPane.showConfirmDialog (content, "Quit and lose unsaved changes?","Warning", JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                boolean clear = false;
+                if (scoreModel.getArrangement().hasUndo()) {
+                    int dialogResult = JOptionPane.showConfirmDialog(content, "Close and lose unsaved changes?", "Warning", JOptionPane.YES_NO_OPTION);
+                    if (dialogResult == JOptionPane.YES_OPTION) {
+                        clear = true;
+                    }
+                } else {
+                    clear = true;
+                }
+                if (clear) {
                     scoreModel.clear(WIDTH);
                 }
                 scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
@@ -548,7 +561,72 @@ public class FunctionToolBar {
             JButton outputBtn = makeButton("toolbar/output", "Output", 24);
             outputBtn.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    scoreModel.output();
+                    JFrame infoFrame = new JFrame("Info");
+                    infoFrame.setLayout(new BorderLayout());
+                    JButton ok = new JButton("ok");
+                    ok.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            infoFrame.dispose();
+                        }
+                    });
+
+                    JTabbedPane tabbedPane = new JTabbedPane();
+
+                    //
+                    // Journal
+                    //
+                    JTextArea ta = new JTextArea();
+                    ta.setText(scoreModel.journal());
+                    tabbedPane.add("Journal", ta);
+
+                    //
+                    // Score
+                    //
+                    JTextArea scoreTextArea = new JTextArea();
+                    scoreTextArea.setText(scoreModel.getScoreBuilder().toString());
+                    JScrollPane scoreScrollPane = new JScrollPane(scoreTextArea);
+                    tabbedPane.add("Score", scoreScrollPane);
+
+                    //
+                    // Event Table
+                    //
+                    for (int i=0; i<scoreModel.getArrangement().getTrackList().size(); i++) {
+                        Vector<String> columnData = new Vector<>();
+                        columnData.add("Type");
+                        columnData.add("Position");
+                        columnData.add("Duration");
+                        columnData.add("Pitch");
+                        columnData.add("Velocity");
+                        columnData.add("Lyrics");
+                        CwnTrack cwnTrack = scoreModel.getArrangement().getTrackList().get(i);
+                        Vector<Vector<String>> rowData = new Vector<>();
+                        MidiTrack track = (MidiTrack) cwnTrack;
+                        for (Event event : track.getChildrenByClass(Event.class)) {
+                            Vector<String> row = new Vector<>();
+                            row.add(event.getType());
+                            Trias trias = PositionTools.getTrias(track, event.getPosition());
+                            row.add(trias.toString());
+                            row.add("" + event.getDuration());
+                            row.add(event instanceof NoteEvent ? "" + ((NoteEvent) event).getCPitch() : "");
+                            row.add(event instanceof NoteEvent ? "" + ((NoteEvent) event).getVelocity() : "");
+                            row.add(event instanceof NoteEvent ? "" + ((NoteEvent) event).getLyrics() : "");
+                            rowData.add(row);
+                        }
+                        JTable table = new JTable(rowData, columnData);
+                        JScrollPane scrollPane = new JScrollPane(table);
+                        table.setFillsViewportHeight(true);
+                        tabbedPane.add(scoreModel.getArrangement().getTrackList().get(i).getName(), scrollPane);
+                    }
+
+                    infoFrame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
+                    infoFrame.getContentPane().add(ok, BorderLayout.PAGE_END);
+                    infoFrame.setSize(1000, 600);
+                    infoFrame.setLocationRelativeTo(content);
+                    infoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    infoFrame.setTitle("Example Frame");
+                    infoFrame.setVisible(true);
+
 //                    System.out.println("------------------------------------------");
 //                    System.out.println(scoreModel.getScoreBuilder().toString());
 //                    System.out.println("------------------------------------------");
@@ -597,6 +675,33 @@ public class FunctionToolBar {
         functionToolbar.add(exitBtn);
     }
 
+    private void saveFile(File fileToSave, JPanel content, String title) {
+        if (fileToSave == null) {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle(title);
+            // fileChooser.setDialogTitle("Specify a file to save");
+            Action details = fileChooser.getActionMap().get("viewTypeDetails");
+            details.actionPerformed(null);
+            int userSelection = fileChooser.showSaveDialog(content);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                fileToSave = fileChooser.getSelectedFile();
+            }
+        }
+        if (fileToSave!=null) {
+            try {
+                FileOutputStream outputStream = new FileOutputStream(fileToSave);
+                Arrangement arrangement = scoreModel.getArrangement();
+                XMLWriter writer = new XMLWriter();
+                writer.run(arrangement, outputStream);
+                scoreModel.getArrangement().clearHistory();
+                panelUpdater.updatePanel();
+                updateToolbar();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+    }
+
     private JButton makeButton(String function, String tooltip) {
         return makeButton(function, tooltip, -1);
     }
@@ -626,7 +731,8 @@ public class FunctionToolBar {
         toolMap.get("newDocument").setEnabled(!dirty && notPlaying);
         toolMap.get("open").setEnabled(!dirty && notPlaying);
         toolMap.get("write").setEnabled(dirty);
-        toolMap.get("closeDocument").setEnabled(dirty && notPlaying);
+        toolMap.get("writeAs").setEnabled(true);
+        toolMap.get("closeDocument").setEnabled(notPlaying);
         toolMap.get("prop").setEnabled(true);
         toolMap.get("addTrack").setEnabled(notPlaying);
         toolMap.get("addLyrics").setEnabled(hasSingleSelection && notPlaying);

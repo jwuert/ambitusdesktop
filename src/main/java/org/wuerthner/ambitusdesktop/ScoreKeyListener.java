@@ -33,6 +33,7 @@ public class ScoreKeyListener {
     private final String kSharp = "#";
     private final String kFlat = "b";
     private final String kRefresh = "F5";
+    private final String kDot = "dot";
 
     public ScoreKeyListener(JPanel scorePanel, ScoreModel scoreModel, ToolbarUpdater toolbarUpdater) {
         this.panel = scorePanel;
@@ -59,6 +60,7 @@ public class ScoreKeyListener {
         add(scorePanel, kSharp, KeyEvent.VK_NUMBER_SIGN, KeyEvent.CTRL_DOWN_MASK);
         add(scorePanel, kFlat, KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK);
         add(scorePanel, kRefresh, KeyEvent.VK_F5, 0);
+        add(scorePanel, kDot, KeyEvent.VK_PERIOD, KeyEvent.CTRL_DOWN_MASK);
     }
 
     private void add(JPanel panel, String key, int code, int modifiers) {
@@ -142,6 +144,10 @@ public class ScoreKeyListener {
                     break;
                 case kRefresh:
                     scoreModel.getScoreBuilder().update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+                    break;
+                case kDot:
+                    selectionTools.dot(scoreModel.getArrangement(), scoreModel.getGridTicks());
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
                     break;
                 default:
             }

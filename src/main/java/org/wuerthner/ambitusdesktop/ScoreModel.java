@@ -15,7 +15,9 @@ import org.wuerthner.cwn.timesignature.SimpleTimeSignature;
 import org.wuerthner.sport.api.*;
 import org.wuerthner.sport.core.XMLElementWriter;
 import org.wuerthner.sport.core.XmlElementReader;
+import org.wuerthner.sport.operation.Transaction;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -31,8 +33,8 @@ public class ScoreModel {
     private NoteSelector gridSelector = NoteSelector.N8;
     private NoteSelector tupletSelector = NoteSelector.T1;
 
-    private String fileName = null;
-    private double zoom = 0; // 0=auto, 1, 2
+    private File file = null;
+    private double zoom = 1.5; // 0=auto, 1, 2
     private boolean lyrics = false;
     private int numberOfSystems = 9999;
 
@@ -279,6 +281,10 @@ public class ScoreModel {
         arrangement.redo();
     }
 
+    public File getFile() { return file; }
+
+    public void setFile(File file) { this.file = file; }
+
     public void play() {
 //        MidiFileWriter writer = new MidiFileWriter(arrangement);
 //        try {
@@ -291,12 +297,11 @@ public class ScoreModel {
 //        }
     }
 
-    public void setTrackProperties(String trackId, boolean mute, String name, String metric, int key, int clef, int tempo, int instrument, int channel) {
-        arrangement.setTrackProperties(trackId, mute, name, metric, key, clef, tempo, instrument, channel);
+    public void setTrackProperties(String trackId, boolean mute, int volume, String name, String metric, int key, int clef, int tempo, int instrument, int channel) {
+        arrangement.setTrackProperties(trackId, mute, volume, name, metric, key, clef, tempo, instrument, channel);
     }
 
     public void setBarProperties(String trackId, long barPosition, String metric, int key, int clef, int bar, int tempo) {
-        // System.out.println("bar prop. " + trackId + ", " + barPosition + ", " + metric + ", key: " + key + ", clef: " + clef + ", bar: " + bar + ", tempo: " + tempo);
         arrangement.setBarProperties(trackId, barPosition, metric, key, clef, CwnBarEvent.TYPES[bar], tempo, factory);
     }
 
@@ -334,6 +339,22 @@ public class ScoreModel {
 
     public int getTempo(int trackIndex, long barPosition) {
         return arrangement.getTrackBarTempo(trackIndex, barPosition);
+    }
+
+    public boolean getMute(int trackIndex) {
+        return arrangement.getTrackList().get(trackIndex).getMute();
+    }
+
+    public int getVolume(int trackIndex) {
+        return arrangement.getTrackList().get(trackIndex).getVolume();
+    }
+
+    public int getChannel(int trackIndex) {
+        return arrangement.getTrackList().get(trackIndex).getChannel();
+    }
+
+    public int getInstrument(int trackIndex) {
+        return arrangement.getTrackList().get(trackIndex).getInstrument();
     }
 
 //    public void changeNoteEvent(int pitchChange, int positionChange, int durationChange, int dotChange, int enhChange, int voiceChange) {
@@ -456,38 +477,57 @@ public class ScoreModel {
         }
     }
 
-    public void output() {
-        System.out.println("=========================================");
+    public String output() {
+        StringBuffer buf = new StringBuffer();
+        String SEP = System.lineSeparator();
         if (arrangement != null) {
-            System.out.println("Arrangement: " + arrangement.getId());
+            buf.append("Arrangement: " + arrangement.getId() + SEP);
             for (CwnTrack cwnTrack : arrangement.getActiveMidiTrackList()) {
                 MidiTrack track = (MidiTrack) cwnTrack;
-                System.out.println("# Track " + track.getName());
+                buf.append("# Track " + track.getName() + SEP);
                 for (Event event : track.getChildrenByClass(Event.class)) {
                     Trias trias = PositionTools.getTrias(track, event.getPosition());
-                    System.out.println("  " + trias + ": " + event.getType() + ", " + event.getId());
+                    buf.append("  " + trias + ": " + event.getType() + ", " + event.getId() + SEP);
                 }
             }
-            System.out.println("-----------------------------------------");
+            buf.append(SEP);
             if (!getClipboard().getElements().isEmpty()) {
-                System.out.println("Clipboard:");
+                buf.append("Clipboard:" + SEP);
                 for (Event event : getClipboard().getElements()) {
-                    System.out.println("- " + event);
+                    buf.append("- " + event + SEP);
                 }
-                System.out.println("-----------------------------------------");
+                buf.append(SEP);
             }
-            System.out.println("History:");
+        }
+        return buf.toString();
+    }
+
+    public String journal() {
+        StringBuffer buf = new StringBuffer();
+        String SEP = System.lineSeparator();
+        if (arrangement != null) {
+            buf.append("Journal:" + SEP);
             History history = arrangement.getHistory();
             for (Operation op : history.getFuture()) {
-                System.out.println("+ " + op.info());
+                buf.append("+ " + op.info() + SEP);
+                if (op instanceof Transaction) {
+                    for (Operation subOp : (Transaction) op) {
+                        buf.append("  " + subOp.info() + SEP);
+                    }
+                }
             }
             for (Operation op : history.getHistory()) {
-                System.out.println("- " + op.info());
+                buf.append("- " + op.info() + SEP);
+                if (op instanceof Transaction) {
+                    for (Operation subOp : (Transaction) op) {
+                        buf.append("  " + subOp.info() + SEP);
+                    }
+                }
             }
         } else {
-            System.out.println("no arrangement found!");
+            buf.append("no arrangement found!" + SEP);
         }
-        System.out.println("=========================================");
+        return buf.toString();
     }
 
     public Arrangement getArrangement() {
@@ -508,10 +548,12 @@ public class ScoreModel {
             Boolean t5 = arrangement.getAttributeValue(Arrangement.durationTuplet5);
             Boolean t6 = arrangement.getAttributeValue(Arrangement.durationTuplet6);
             getScoreParameter().setTuplet(t2, t3, t4, t5, t6);
-            int stretchFactor = arrangement.getAttributeValue(Arrangement.stretchFactor);
+            int stretchFactor = arrangement.getStretchFactor();
             int groupLevel = arrangement.getAttributeValue(Arrangement.groupLevel);
             getScoreParameter().setDisplayStretchFactor(stretchFactor);
             getScoreParameter().setMetricLevel(groupLevel);
+            getScoreParameter().setResolutionInTicks(arrangement.getResolutionInTicks());
         }
     }
+
 }
