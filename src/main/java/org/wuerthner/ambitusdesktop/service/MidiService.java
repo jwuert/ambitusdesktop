@@ -37,6 +37,10 @@ public class MidiService {
     // }
 
     public void play(Arrangement arrangement, AmbitusSelection selection, boolean selectionOnly, boolean record) {
+        play(arrangement, selection, selectionOnly, record, 100, -1, 0);
+    }
+
+    public void play(Arrangement arrangement, AmbitusSelection selection, boolean selectionOnly, boolean record, int tempo, int exposedTrack, int exposedStrength) {
         if (!arrangement.getActiveMidiTrackList().isEmpty()) {
 
             long startPosition = arrangement.getBarOffsetPosition();
@@ -46,7 +50,7 @@ public class MidiService {
                 endPosition = selection.getSelection().get(selection.getSelection().size()-1).getPosition()
                     +selection.getSelection().get(selection.getSelection().size()-1).getDuration();
             }
-            Sequence sequence = sequenceService.createSequence(arrangement, endPosition, selection);
+            Sequence sequence = sequenceService.createSequence(arrangement, endPosition, selection, exposedTrack, exposedStrength, tempo);
             play(arrangement, startPosition, endPosition, sequence, initialSleep, record);
         }
     }

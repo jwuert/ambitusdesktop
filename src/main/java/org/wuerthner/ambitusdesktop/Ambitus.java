@@ -27,6 +27,10 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
     private FunctionToolBar functionToolBar;
 
     public Ambitus() {
+//        try {
+//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+//        }
         final JFrame frame = new JFrame("Ambitus");
         updatePanel();
         content = makeContent();

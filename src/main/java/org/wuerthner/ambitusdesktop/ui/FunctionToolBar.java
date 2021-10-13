@@ -7,7 +7,9 @@ import org.wuerthner.ambitus.model.NoteEvent;
 import org.wuerthner.ambitus.service.Quantize;
 import org.wuerthner.ambitus.type.NamedRange;
 import org.wuerthner.ambitusdesktop.*;
+import org.wuerthner.ambitusdesktop.service.ExportService;
 import org.wuerthner.ambitusdesktop.service.MidiService;
+import org.wuerthner.ambitusdesktop.service.PrintService;
 import org.wuerthner.cwn.api.CwnEvent;
 import org.wuerthner.cwn.api.CwnTrack;
 import org.wuerthner.cwn.api.Trias;
@@ -31,19 +33,23 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.stream.Collectors;
 
-public class FunctionToolBar {
+public class FunctionToolBar implements PositionUpdater {
     private final JToolBar functionToolbar;
     private final MidiService midiService = new MidiService();
+    private final PrintService printService = new PrintService();
+    private final ExportService exportService = new ExportService();
     private final Map<String,JButton> toolMap = new HashMap<>();
     private final ScoreModel scoreModel;
     private final ScoreUpdater scoreUpdater;
     private final PanelUpdater panelUpdater;
     private final ToolbarUpdater toolbarUpdater;
+    private final JTextField positionField;
+    private JFileChooser fileChooser = null;
+    private RecentFileChooser.RecentFileList recentFileList = null;
 
     public FunctionToolBar(ScoreModel scoreModel, ScoreUpdater scoreUpdater, ToolbarUpdater toolbarUpdater, PanelUpdater panelUpdater, JPanel content, int WIDTH) {
         this.scoreModel = scoreModel;
@@ -74,13 +80,21 @@ public class FunctionToolBar {
         AbstractAction open = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFileChooser  fileChooser = new JFileChooser();
-                fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-                Action details = fileChooser.getActionMap().get("viewTypeDetails");
-                details.actionPerformed(null);
+                if (fileChooser==null) {
+                    fileChooser = new JFileChooser();
+                    fileChooser.setPreferredSize(new Dimension(800,500));
+                    Action details = fileChooser.getActionMap().get("viewTypeDetails");
+                    details.actionPerformed(null);
+                    recentFileList = new RecentFileChooser.RecentFileList(fileChooser);
+                    recentFileList.load();
+                    fileChooser.setAccessory(recentFileList);
+                    fileChooser.getAccessory().setPreferredSize(new Dimension(240,500));
+                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                }
                 int result = fileChooser.showOpenDialog(content);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
+                    recentFileList.add(selectedFile);
                     try {
                         FileInputStream inputStream = new FileInputStream(selectedFile);
                         // XmlElementReader reader = new XmlElementReader(scoreModel.factory, Arrangement.TYPE);
@@ -93,6 +107,7 @@ public class FunctionToolBar {
                             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
                             panelUpdater.updatePanel();
                             updateToolbar();
+                            updatePosition();
                         }
                     } catch (IOException ioe) {
                         ioe.printStackTrace();
@@ -137,6 +152,20 @@ public class FunctionToolBar {
         writeAsBtn.getActionMap().put("writeAs", writeAsAction);
         toolMap.put("writeAs", writeAsBtn);
         functionToolbar.add(writeAsBtn);
+
+        // Print
+        JButton printBtn = makeButton("toolbar/print", "Print",24);
+        AbstractAction printAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                printService.print(scoreModel.getArrangement());
+            }
+        };
+        printBtn.addActionListener(printAction);
+        printBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK), "print");
+        printBtn.getActionMap().put("print", printAction);
+        toolMap.put("print", printBtn);
+        functionToolbar.add(printBtn);
 
         // Close Document
         JButton closeDocument = makeButton("toolbar/close", "Close Document",24);
@@ -322,9 +351,6 @@ public class FunctionToolBar {
                             JOptionPane.PLAIN_MESSAGE
                     );
                     Trias newPositionTrias = new Trias(posString);
-//                    for (org.wuerthner.ambitus.model.Event ev: scoreModel.getSelection().getSelection()) {
-//                        System.out.println("~~ " + ev.getPosition() + ", " + ev.getType());
-//                    }
                     long newPosition = PositionTools.getPosition(selectedMidiTrack, newPositionTrias);
                     long oldPosition = scoreModel.getClipboard().getElements().get(0).getPosition();
                     long deltaPosition = newPosition - oldPosition;
@@ -389,6 +415,7 @@ public class FunctionToolBar {
                 scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
                 scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
                 updateToolbar();
+                updatePosition();
             }
         });
         functionToolbar.add(firstBtn);
@@ -401,9 +428,24 @@ public class FunctionToolBar {
                 scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
                 scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
                 updateToolbar();
+                updatePosition();
             }
         });
         functionToolbar.add(prevBtn);
+
+        // Position
+        positionField = new JTextField();
+        positionField.setMaximumSize(new Dimension(110, 36));
+        positionField.setMinimumSize(new Dimension(110, 36));
+        positionField.setPreferredSize(new Dimension(110, 36));
+        positionField.setSize(new Dimension(110, 36));
+        positionField.setEditable(false);
+        positionField.setBorder(NoteToolBar.etchlBorder);
+        positionField.setBackground(Color.LIGHT_GRAY);
+        positionField.setForeground(new Color(0,120,0));
+        positionField.setFont(new Font("Dialog", Font.BOLD, 12));
+        positionField.setText(new Trias(0,0,0).toFormattedString());
+        functionToolbar.add(positionField);
 
         // Play
         JButton playBtn = makeButton("toolbar/play", "Play",24);
@@ -411,7 +453,7 @@ public class FunctionToolBar {
             @Override
             public void actionPerformed(ActionEvent e) {
                 midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,false);
-                new Thread(new ScorePlayer(content, toolbarUpdater)).start();
+                new Thread(new ScorePlayer(content, toolbarUpdater, FunctionToolBar.this)).start();
                 updateToolbar();
             }
         };
@@ -421,13 +463,59 @@ public class FunctionToolBar {
         toolMap.put("play", playBtn);
         functionToolbar.add(playBtn);
 
+        // Play Config
+        JButton playConfBtn = makeButton("toolbar/playConfig", "Play Configuration",24);
+        AbstractAction playConfAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String tempo = "" + scoreModel.getPlayTempo();
+                String strength = "" + scoreModel.getPlayStrength();
+
+                List<String> exposeList = new ArrayList<>();
+                exposeList.add("-");
+                exposeList.addAll(scoreModel.getTrackList().stream().map(track -> track.getName()).collect(Collectors.toList()));
+                exposeList.add(scoreModel.getPlayExpose() < 0 ? "-" : exposeList.get(scoreModel.getPlayExpose() + 1));
+                List<String> strengthList = new ArrayList<>();
+                strengthList.addAll(Arrays.asList("1", "2", "3", "4"));
+                strengthList.add(strength);
+                ParameterDialog pd = new ParameterDialog(new String[]{"Create Range"},
+                        new String[]{"Tempo", "Expose", "Strength"},
+                        new Object[]{tempo, exposeList.toArray(new String[]{}), strengthList.toArray(new String[]{})},
+                        content);
+                String[] parameters = pd.getParameters();
+                if (parameters!=null) {
+                    String newTempoS = parameters[0];
+                    String newExposeS = parameters[1];
+                    String newStrengthS = parameters[2];
+                    try {
+                        int newTempo = Integer.valueOf(newTempoS);
+                        int newStrength = Integer.valueOf(newStrengthS);
+                        int newExpose = exposeList.indexOf(newExposeS) - 1;
+                        scoreModel.setPlayExpose(newExpose);
+                        scoreModel.setPlayStrength(newStrength);
+                        scoreModel.setPlayTempo(newTempo);
+                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false, false, newTempo, newExpose, newStrength);
+                        new Thread(new ScorePlayer(content, toolbarUpdater, FunctionToolBar.this)).start();
+                    } catch (Exception e2) {
+                        e2.printStackTrace();
+                    }
+                }
+                updateToolbar();
+            }
+        };
+        playConfBtn.addActionListener(playConfAction);
+        // playConfBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.ALT_DOWN_MASK), "playConfiguration");
+        playConfBtn.getActionMap().put("playConfiguration", playConfAction);
+        toolMap.put("playConfiguration", playConfBtn);
+        functionToolbar.add(playConfBtn);
+
         // Play Selection
         JButton playSelBtn = makeButton("toolbar/playSelection", "Play Selection",24);
         AbstractAction playSelAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), true, false);
-                new Thread(new ScorePlayer(content, toolbarUpdater)).start();
+                new Thread(new ScorePlayer(content, toolbarUpdater, FunctionToolBar.this)).start();
                 updateToolbar();
             }
         };
@@ -436,6 +524,32 @@ public class FunctionToolBar {
         playSelBtn.getActionMap().put("playSelection", playSelAction);
         toolMap.put("playSelection", playSelBtn);
         functionToolbar.add(playSelBtn);
+
+        // Export
+        JButton exportBtn = makeButton("toolbar/exportCollection", "Export Collection",24);
+        AbstractAction exportAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String tempo = "80, 100";
+                List<String> strengthList = Arrays.asList("-", "1", "2", "3", "4", "-");
+                ParameterDialog pd = new ParameterDialog(new String[]{"Create Range"},
+                        new String[]{"Tempi", "Strength"},
+                        new Object[]{tempo, strengthList.toArray(new String[]{})},
+                        content);
+                String[] parameters = pd.getParameters();
+                if (parameters != null) {
+                    String tempi = parameters[0];
+                    int strength = strengthList.indexOf(parameters[1]);
+                    exportService.export(scoreModel.getArrangement(), scoreModel, strength, tempi);
+                }
+                updateToolbar();
+            }
+        };
+        exportBtn.addActionListener(exportAction);
+        // exportBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK), "playSelection");
+        exportBtn.getActionMap().put("export", exportAction);
+        toolMap.put("export", exportBtn);
+        functionToolbar.add(exportBtn);
 
         // Stop
         JButton stopBtn = makeButton("toolbar/stop", "Stop",24);
@@ -460,6 +574,7 @@ public class FunctionToolBar {
                 scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
                 scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
                 updateToolbar();
+                updatePosition();
             }
         });
         functionToolbar.add(nextBtn);
@@ -472,6 +587,7 @@ public class FunctionToolBar {
                 scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
                 scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
                 updateToolbar();
+                updatePosition();
             }
         });
         functionToolbar.add(lastBtn);
@@ -490,16 +606,16 @@ public class FunctionToolBar {
         });
         functionToolbar.add(zoomBtn);
 
-        // List (Multi-Project?)
-        JButton listBtn = makeButton("toolbar/list", "Toggle Sheet/System", 24);
-        listBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                scoreModel.toggleList();
-                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-                updateToolbar();
-            }
-        });
-        functionToolbar.add(listBtn);
+//        // List (Multi-Project?)
+//        JButton listBtn = makeButton("toolbar/list", "Toggle Sheet/System", 24);
+//        listBtn.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                scoreModel.toggleList();
+//                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+//                updateToolbar();
+//            }
+//        });
+//        functionToolbar.add(listBtn);
 
 //        // Refresh
 //        JButton refreshBtn = makeButton("toolbar/refresh", 24);
@@ -557,7 +673,35 @@ public class FunctionToolBar {
         // SEPARATOR
         functionToolbar.addSeparator(new Dimension(10, 40));
 
+        JButton exitBtn = makeButton("toolbar/shutdown", "Quit",24);
+        AbstractAction exitAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                boolean exit = false;
+                boolean dirty = scoreModel.getArrangement().hasUndo();
+                if (dirty) {
+                    int dialogResult = JOptionPane.showConfirmDialog (content, "Quit and lose unsaved changes?","Warning", JOptionPane.YES_NO_OPTION);
+                    if(dialogResult == JOptionPane.YES_OPTION){
+                        exit = true;
+                    }
+                } else {
+                    exit = true;
+                }
+                if (exit) {
+                    System.exit(0);
+                }
+            }
+        };
+        exitBtn.addActionListener(exitAction);
+        exitBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.CTRL_DOWN_MASK), "exit");
+        exitBtn.getActionMap().put("exit", exitAction);
+        toolMap.put("exit", exitBtn);
+        functionToolbar.add(exitBtn);
+
         if (scoreModel.debug()) {
+            // SEPARATOR
+            functionToolbar.add(new JSeparator());
+
             JButton outputBtn = makeButton("toolbar/output", "Output", 24);
             outputBtn.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -623,7 +767,7 @@ public class FunctionToolBar {
                     infoFrame.getContentPane().add(ok, BorderLayout.PAGE_END);
                     infoFrame.setSize(1000, 600);
                     infoFrame.setLocationRelativeTo(content);
-                    infoFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    infoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                     infoFrame.setTitle("Example Frame");
                     infoFrame.setVisible(true);
 
@@ -644,35 +788,7 @@ public class FunctionToolBar {
                 }
             });
             functionToolbar.add(debugScoreBtn);
-
-            // SEPARATOR
-            functionToolbar.addSeparator(new Dimension(10, 40));
         }
-
-        JButton exitBtn = makeButton("toolbar/shutdown", "Quit",24);
-        AbstractAction exitAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                boolean exit = false;
-                boolean dirty = scoreModel.getArrangement().hasUndo();
-                if (dirty) {
-                    int dialogResult = JOptionPane.showConfirmDialog (content, "Quit and lose unsaved changes?","Warning", JOptionPane.YES_NO_OPTION);
-                    if(dialogResult == JOptionPane.YES_OPTION){
-                        exit = true;
-                    }
-                } else {
-                    exit = true;
-                }
-                if (exit) {
-                    System.exit(0);
-                }
-            }
-        };
-        exitBtn.addActionListener(exitAction);
-        exitBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.CTRL_DOWN_MASK), "exit");
-        exitBtn.getActionMap().put("exit", exitAction);
-        toolMap.put("exit", exitBtn);
-        functionToolbar.add(exitBtn);
     }
 
     private void saveFile(File fileToSave, JPanel content, String title) {
@@ -689,6 +805,7 @@ public class FunctionToolBar {
         }
         if (fileToSave!=null) {
             try {
+                recentFileList.add(fileToSave);
                 FileOutputStream outputStream = new FileOutputStream(fileToSave);
                 Arrangement arrangement = scoreModel.getArrangement();
                 XMLWriter writer = new XMLWriter();
@@ -731,9 +848,10 @@ public class FunctionToolBar {
         toolMap.get("newDocument").setEnabled(!dirty && notPlaying);
         toolMap.get("open").setEnabled(!dirty && notPlaying);
         toolMap.get("write").setEnabled(dirty);
-        toolMap.get("writeAs").setEnabled(true);
+        toolMap.get("writeAs").setEnabled(noOfTracks > 0 && notPlaying);
+        toolMap.get("print").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("closeDocument").setEnabled(notPlaying);
-        toolMap.get("prop").setEnabled(true);
+        toolMap.get("prop").setEnabled(notPlaying);
         toolMap.get("addTrack").setEnabled(notPlaying);
         toolMap.get("addLyrics").setEnabled(hasSingleSelection && notPlaying);
         toolMap.get("undo").setEnabled(dirty && notPlaying);
@@ -744,8 +862,10 @@ public class FunctionToolBar {
         toolMap.get("paste").setEnabled(hasClipboard && notPlaying);
         toolMap.get("clearSelection").setEnabled(hasSelection);
         toolMap.get("quantize").setEnabled(noOfTracks>0 && notPlaying);
-        toolMap.get("play").setEnabled(noOfTracks>0 && notPlaying);
-        toolMap.get("playSelection").setEnabled(noOfTracks>0 && notPlaying);
+        toolMap.get("play").setEnabled(noOfTracks > 0 && notPlaying);
+        toolMap.get("playConfiguration").setEnabled(noOfTracks > 0 && notPlaying);
+        toolMap.get("playSelection").setEnabled(noOfTracks > 0 && notPlaying);
+        toolMap.get("export").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("stop").setEnabled(! notPlaying);
     }
 
@@ -755,5 +875,16 @@ public class FunctionToolBar {
 
     public Map<String,JButton> getToolMap() {
         return toolMap;
+    }
+
+    @Override
+    public void updatePosition() {
+        long position = MidiService.getPosition();
+        if (position == 0) {
+            position = scoreModel.getArrangement().getBarOffsetPosition();
+        }
+        CwnTrack track = scoreModel.getTrackList().get(0);
+        Trias trias = PositionTools.getTrias(track, position);
+        positionField.setText(trias.toFormattedString());
     }
 }

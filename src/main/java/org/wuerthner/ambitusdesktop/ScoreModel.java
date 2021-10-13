@@ -5,6 +5,7 @@ import org.wuerthner.ambitus.template.Template;
 import org.wuerthner.ambitus.tool.AbstractSelection;
 import org.wuerthner.ambitusdesktop.score.AmbitusScoreLayout;
 import org.wuerthner.ambitusdesktop.score.AmbitusSelection;
+import org.wuerthner.ambitusdesktop.ui.RecentFileChooser;
 import org.wuerthner.cwn.api.*;
 import org.wuerthner.cwn.position.PositionTools;
 import org.wuerthner.cwn.score.Location;
@@ -42,6 +43,9 @@ public class ScoreModel {
     private ScoreBuilder scoreBuilder;
     private AmbitusScoreLayout scoreLayout;
     private int width = 0;
+    private int playTempo = 100;
+    private int playStrength = 3;
+    private int playExpose = -1;
 
     public final AmbitusFactory factory = new AmbitusFactory();
 
@@ -67,6 +71,7 @@ public class ScoreModel {
         ScoreParameter scoreParameter = createScoreParameter(arrangement);
         scoreBuilder = new ScoreBuilder(arrangement, scoreParameter, scoreLayout, numberOfSystems);
         updateScoreParameter();
+        this.setFile(null);
     }
 
     private ScoreParameter createScoreParameter(Arrangement arrangement) {
@@ -132,9 +137,9 @@ public class ScoreModel {
     }
 
     public void toggleZoom() {
-        zoom++;
-        if (zoom==3)
-            zoom = 0;
+        zoom += 0.5;
+        if (zoom==2.5)
+            zoom = 1.0;
     }
 
     public void toggleList() {
@@ -538,6 +543,7 @@ public class ScoreModel {
         this.arrangement = arrangement;
         arrangement.setSelection(new AmbitusSelection());
         scoreBuilder.setContainer(arrangement);
+        this.setFile(null);
     }
 
     public void updateScoreParameter() {
@@ -556,4 +562,27 @@ public class ScoreModel {
         }
     }
 
+    public int getPlayTempo() {
+        return playTempo;
+    }
+
+    public void setPlayTempo(int playTempo) {
+        this.playTempo = playTempo;
+    }
+
+    public int getPlayStrength() {
+        return playStrength;
+    }
+
+    public void setPlayStrength(int playStrength) {
+        this.playStrength = playStrength;
+    }
+
+    public int getPlayExpose() {
+        return playExpose;
+    }
+
+    public void setPlayExpose(int playExpose) {
+        this.playExpose = playExpose;
+    }
 }

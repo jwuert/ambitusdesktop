@@ -168,7 +168,7 @@ public class MidiDeviceHandler implements DeviceHandler {
 
     @Override
     public long getPosition() {
-        return sequencer == null ? 0 : sequencer.getTickPosition();
+        return sequencer == null ? 0 : sequencer.isRunning() ? sequencer.getTickPosition() : 0;
     }
 
     @Override

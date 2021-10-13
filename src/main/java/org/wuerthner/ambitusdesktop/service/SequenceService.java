@@ -10,20 +10,23 @@ import org.wuerthner.cwn.timesignature.SimpleTimeSignature;
 import org.wuerthner.sport.api.ModelElement;
 
 import javax.sound.midi.*;
+import java.util.List;
 
 public class SequenceService {
-    public Sequence createSequence(Arrangement arrangement, long endPosition, AmbitusSelection selection) {
+    public Sequence createSequence(Arrangement arrangement, long endPosition, AmbitusSelection selection, int exposedTrack, int exposedStrength, int tempo) {
         Sequence sequence = null;
         long startPosition = 0;
         boolean playAll = (endPosition == 0);
-        boolean hasExposedTracks = false; // TODO: hasExposedActiveTracks(selection);
-        double exposeFactor = 1.0 + 0.2 * arrangement.getExposeValue();
-        double tempoFactor = arrangement.getTempo(0) * 0.01;
+        boolean hasExposedTracks = exposedTrack >= 0;
+        double exposeFactor = 1.0 + 0.2 * exposedStrength;
+        double tempoFactor = arrangement.getTempo(0) * 0.01 * tempo * 0.01;
         try {
             sequence = new Sequence(Sequence.PPQ, arrangement.getPPQ());
             Track tempoTrack = sequence.createTrack();
-            for (MidiTrack midiTrack : arrangement.getActiveMidiTrackList()) {
-                double volumeWeight = 1.0; // TODO: (hasExposedTracks ? isExposed(midiTrack, selection) ? exposeFactor : 1.0 / exposeFactor : 1.0);
+            List<CwnTrack> trackList = arrangement.getTrackList();
+            for (int trackNo = 0; trackNo < trackList.size(); trackNo++) {
+                MidiTrack midiTrack = (MidiTrack) trackList.get(trackNo);
+                double volumeWeight =  (hasExposedTracks ? trackNo == exposedTrack ? exposeFactor : 1.0 / exposeFactor : 1.0);
                 double volume = midiTrack.getVolume()*0.1;
                 int program = midiTrack.getInstrument();
                 int channel = midiTrack.getChannel();
@@ -132,15 +135,5 @@ public class SequenceService {
         // MidiEvent instrumentChange = new
         // MidiEvent(ShortMessage.PROGRAM_CHANGE,drumPatch.getBank(),drumPatch.getProgram());
         return new MidiEvent(instrumentChange, 0);
-    }
-
-    private boolean isExposed(MidiTrack midiTrack, AmbitusSelection selection) {
-        ModelElement element = null; // TODO: selection.getElement("exposedTrack");
-        return element == midiTrack;
-    }
-
-    private boolean hasExposedActiveTracks(AmbitusSelection selection) {
-        ModelElement element = null; // TODO: selection.getElement("exposedTrack");
-        return (element != null);
     }
 }
