@@ -148,11 +148,11 @@ public class NoteToolBar {
             updateSelector(tupletButtonGroup, NoteSelector.T1);
         });
 
-        JToggleButton tupletBtn2 = makeGroupButton("images/buttons/nbTuplet2", tupletButtonGroup, NoteSelector.T2, toolbar2);
-        makeAction(tupletBtn2, KeyEvent.VK_2, KeyEvent.ALT_DOWN_MASK, () -> {
-            scoreModel.setTupletSelector(NoteSelector.T2);
-            updateSelector(tupletButtonGroup, NoteSelector.T2);
-        });
+//        JToggleButton tupletBtn2 = makeGroupButton("images/buttons/nbTuplet2", tupletButtonGroup, NoteSelector.T2, toolbar2);
+//        makeAction(tupletBtn2, KeyEvent.VK_2, KeyEvent.ALT_DOWN_MASK, () -> {
+//            scoreModel.setTupletSelector(NoteSelector.T2);
+//            updateSelector(tupletButtonGroup, NoteSelector.T2);
+//        });
 
         JToggleButton tupletBtn3 = makeGroupButton("images/buttons/nbTuplet3", tupletButtonGroup, NoteSelector.T3, toolbar2);
         makeAction(tupletBtn3, KeyEvent.VK_3, KeyEvent.ALT_DOWN_MASK, () -> {
@@ -160,11 +160,11 @@ public class NoteToolBar {
             updateSelector(tupletButtonGroup, NoteSelector.T3);
         });
 
-        JToggleButton tupletBtn4 = makeGroupButton("images/buttons/nbTuplet4", tupletButtonGroup, NoteSelector.T4, toolbar2);
-        makeAction(tupletBtn4, KeyEvent.VK_4, KeyEvent.ALT_DOWN_MASK, () -> {
-            scoreModel.setTupletSelector(NoteSelector.T4);
-            updateSelector(tupletButtonGroup, NoteSelector.T4);
-        });
+//        JToggleButton tupletBtn4 = makeGroupButton("images/buttons/nbTuplet4", tupletButtonGroup, NoteSelector.T4, toolbar2);
+//        makeAction(tupletBtn4, KeyEvent.VK_4, KeyEvent.ALT_DOWN_MASK, () -> {
+//            scoreModel.setTupletSelector(NoteSelector.T4);
+//            updateSelector(tupletButtonGroup, NoteSelector.T4);
+//        });
 
         JToggleButton tupletBtn5 = makeGroupButton("images/buttons/nbTuplet5", tupletButtonGroup, NoteSelector.T5, toolbar2);
         makeAction(tupletBtn5, KeyEvent.VK_5, KeyEvent.ALT_DOWN_MASK, () -> {
@@ -172,17 +172,17 @@ public class NoteToolBar {
             updateSelector(tupletButtonGroup, NoteSelector.T5);
         });
 
-        JToggleButton tupletBtn6 = makeGroupButton("images/buttons/nbTuplet6", tupletButtonGroup, NoteSelector.T6, toolbar2);
-        makeAction(tupletBtn6, KeyEvent.VK_6, KeyEvent.ALT_DOWN_MASK, () -> {
-            scoreModel.setTupletSelector(NoteSelector.T6);
-            updateSelector(tupletButtonGroup, NoteSelector.T6);
-        });
-
-        JToggleButton tupletBtn7 = makeGroupButton("images/buttons/nbTuplet7", tupletButtonGroup, NoteSelector.T7, toolbar2);
-        makeAction(tupletBtn7, KeyEvent.VK_7, KeyEvent.ALT_DOWN_MASK, () -> {
-            scoreModel.setTupletSelector(NoteSelector.T7);
-            updateSelector(tupletButtonGroup, NoteSelector.T7);
-        });
+//        JToggleButton tupletBtn6 = makeGroupButton("images/buttons/nbTuplet6", tupletButtonGroup, NoteSelector.T6, toolbar2);
+//        makeAction(tupletBtn6, KeyEvent.VK_6, KeyEvent.ALT_DOWN_MASK, () -> {
+//            scoreModel.setTupletSelector(NoteSelector.T6);
+//            updateSelector(tupletButtonGroup, NoteSelector.T6);
+//        });
+//
+//        JToggleButton tupletBtn7 = makeGroupButton("images/buttons/nbTuplet7", tupletButtonGroup, NoteSelector.T7, toolbar2);
+//        makeAction(tupletBtn7, KeyEvent.VK_7, KeyEvent.ALT_DOWN_MASK, () -> {
+//            scoreModel.setTupletSelector(NoteSelector.T7);
+//            updateSelector(tupletButtonGroup, NoteSelector.T7);
+//        });
 
 
         // default values

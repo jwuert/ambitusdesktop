@@ -408,7 +408,7 @@ public class FunctionToolBar implements PositionUpdater {
 
         // Rewind
         JButton firstBtn = makeButton("toolbar/first", "Rewind", 24);
-        firstBtn.addActionListener(new ActionListener() {
+        AbstractAction firstAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 scoreModel.getArrangement().setOffsetToFirstBar();
                 scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
@@ -416,12 +416,16 @@ public class FunctionToolBar implements PositionUpdater {
                 updateToolbar();
                 updatePosition();
             }
-        });
+        };
+        firstBtn.addActionListener(firstAction);
+        firstBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, KeyEvent.ALT_DOWN_MASK), "rewind");
+        firstBtn.getActionMap().put("rewind", firstAction);
+        toolMap.put("rewind", firstBtn);
         functionToolbar.add(firstBtn);
 
         // Previous
         JButton prevBtn = makeButton("toolbar/previous", "Previous Bar", 24);
-        prevBtn.addActionListener(new ActionListener() {
+        AbstractAction prevAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 scoreModel.getArrangement().decreaseBarOffset(1);
                 scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
@@ -429,7 +433,11 @@ public class FunctionToolBar implements PositionUpdater {
                 updateToolbar();
                 updatePosition();
             }
-        });
+        };
+        prevBtn.addActionListener(prevAction);
+        prevBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK), "previous");
+        prevBtn.getActionMap().put("previous", prevAction);
+        toolMap.put("previous", prevBtn);
         functionToolbar.add(prevBtn);
 
         // Position
@@ -567,7 +575,7 @@ public class FunctionToolBar implements PositionUpdater {
 
         // Next
         JButton nextBtn = makeButton("toolbar/next", "Next Bar",24);
-        nextBtn.addActionListener(new ActionListener() {
+        AbstractAction nextAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 scoreModel.getArrangement().increaseBarOffset(1);
                 scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
@@ -575,12 +583,16 @@ public class FunctionToolBar implements PositionUpdater {
                 updateToolbar();
                 updatePosition();
             }
-        });
+        };
+        nextBtn.addActionListener(nextAction);
+        nextBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK), "next");
+        nextBtn.getActionMap().put("next", nextAction);
+        toolMap.put("next", nextBtn);
         functionToolbar.add(nextBtn);
 
         // End
         JButton lastBtn = makeButton("toolbar/last", "Last Bar", 24);
-        lastBtn.addActionListener(new ActionListener() {
+        AbstractAction lastAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 scoreModel.getArrangement().setOffsetToLastBar();
                 scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
@@ -588,7 +600,11 @@ public class FunctionToolBar implements PositionUpdater {
                 updateToolbar();
                 updatePosition();
             }
-        });
+        };
+        lastBtn.addActionListener(lastAction);
+        lastBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_END, KeyEvent.ALT_DOWN_MASK), "last");
+        lastBtn.getActionMap().put("last", lastAction);
+        toolMap.put("last", lastBtn);
         functionToolbar.add(lastBtn);
 
         // SEPARATOR
@@ -668,6 +684,69 @@ public class FunctionToolBar implements PositionUpdater {
         rangeBtn.getActionMap().put("range", rangeAction);
         toolMap.put("range", rangeBtn);
         functionToolbar.add(rangeBtn);
+
+        // About
+        JButton aboutBtn = makeButton("toolbar/about", "About",24);
+        AbstractAction aboutAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame infoFrame = new JFrame("Info");
+                infoFrame.setLayout(new BorderLayout());
+
+                JLabel label = new JLabel("Ambitus, J. Würthner (c) 2021");
+                label.setHorizontalAlignment(JLabel.CENTER);
+                label.setPreferredSize(new Dimension(520, 32));
+                infoFrame.getContentPane().add(label, BorderLayout.PAGE_START);
+
+                Vector<String> columnData = new Vector<>();
+                columnData.add("Key");
+                columnData.add("Description");
+
+                Vector<Vector<String>> rowData = new Vector<>();
+
+                rowData.add(new Vector<String>(Arrays.asList("Left Arrow", "Select event at previous position")));
+                rowData.add(new Vector<String>(Arrays.asList("Right Arrow", "Select event at following position")));
+                rowData.add(new Vector<String>(Arrays.asList("Up Arrow", "Select following event")));
+                rowData.add(new Vector<String>(Arrays.asList("Down Arrow", "Select previous event")));
+                rowData.add(new Vector<String>(Arrays.asList("Page Up", "Select previous staff")));
+                rowData.add(new Vector<String>(Arrays.asList("Page Down", "Select the following staff")));
+                rowData.add(new Vector<String>(Arrays.asList("Alt Left Arrow", "Decrease bar offset")));
+                rowData.add(new Vector<String>(Arrays.asList("Alt Right Arrow", "Increase bar offset")));
+                rowData.add(new Vector<String>(Arrays.asList("Alt Home", "Reset bar offset to zero")));
+                rowData.add(new Vector<String>(Arrays.asList("Alt End", "Set bar offset to end")));
+
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl Left Arrow", "Move note left")));
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl Right Arrow", "Move note right")));
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl Up Arrow", "Move note up")));
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl Down Arrow", "Move note down")));
+                rowData.add(new Vector<String>(Arrays.asList("Shift Left Arrow", "Decrease note length (grid)")));
+                rowData.add(new Vector<String>(Arrays.asList("Shift Right Arrow", "Increase note length (grid)")));
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl #", "Increase enharmonic shift")));
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl b", "Decrease enharmonic shift")));
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl d", "Double note length")));
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl h", "Halve note length")));
+
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl .", "Toggle none, one, two or three dots")));
+                rowData.add(new Vector<String>(Arrays.asList("F5", "Refresh display")));
+
+                JTable table = new JTable(rowData, columnData);
+                JScrollPane scrollPane = new JScrollPane(table);
+                table.setFillsViewportHeight(true);
+
+                infoFrame.getContentPane().add(table, BorderLayout.CENTER);
+
+                infoFrame.setSize(520, 420);
+                infoFrame.setLocationRelativeTo(content);
+                infoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                infoFrame.setTitle("About");
+                infoFrame.setVisible(true);
+            }
+        };
+        aboutBtn.addActionListener(aboutAction);
+        aboutBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('?', KeyEvent.CTRL_DOWN_MASK), "about");
+        aboutBtn.getActionMap().put("about", aboutAction);
+        toolMap.put("about", aboutBtn);
+        functionToolbar.add(aboutBtn);
 
         // SEPARATOR
         functionToolbar.addSeparator(new Dimension(10, 40));
@@ -767,7 +846,7 @@ public class FunctionToolBar implements PositionUpdater {
                     infoFrame.setSize(1000, 600);
                     infoFrame.setLocationRelativeTo(content);
                     infoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                    infoFrame.setTitle("Example Frame");
+                    infoFrame.setTitle("Info");
                     infoFrame.setVisible(true);
 
 //                    System.out.println("------------------------------------------");
@@ -881,11 +960,16 @@ public class FunctionToolBar implements PositionUpdater {
         toolMap.get("paste").setEnabled(hasClipboard && notPlaying);
         toolMap.get("clearSelection").setEnabled(hasSelection);
         toolMap.get("quantize").setEnabled(noOfTracks>0 && notPlaying);
+        toolMap.get("rewind").setEnabled(noOfTracks > 0);
+        toolMap.get("previous").setEnabled(noOfTracks > 0);
+        toolMap.get("next").setEnabled(noOfTracks > 0);
+        toolMap.get("last").setEnabled(noOfTracks > 0);
         toolMap.get("play").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("playConfiguration").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("playSelection").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("export").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("stop").setEnabled(! notPlaying);
+        toolMap.get("range").setEnabled(noOfTracks > 0);
     }
 
     public JToolBar getFunctionToolbar() {
