@@ -21,6 +21,8 @@ import org.wuerthner.sport.core.XMLReader;
 import org.wuerthner.sport.core.XMLWriter;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
 import javax.swing.table.JTableHeader;
@@ -57,13 +59,18 @@ public class FunctionToolBar implements PositionUpdater {
         this.toolbarUpdater = toolbarUpdater;
         this.panelUpdater = panelUpdater;
         this.functionToolbar = new JToolBar();
+
+        createFileChooser();
         
         // New Document Wizard!
         JButton newDocumentBtn = makeButton("toolbar/newDocument", "new Document", 24);
         AbstractAction newDocumentAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                scoreModel.setArrangement(Wizard.createArrangement(scoreModel, content));
+                Arrangement newArrangement = Wizard.createArrangement(scoreModel, content);
+                if (newArrangement != null) {
+                    scoreModel.setArrangement(newArrangement);
+                }
                 scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
                 panelUpdater.updatePanel();
                 updateToolbar();
@@ -80,17 +87,6 @@ public class FunctionToolBar implements PositionUpdater {
         AbstractAction open = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (fileChooser==null) {
-                    fileChooser = new JFileChooser();
-                    fileChooser.setPreferredSize(new Dimension(800,500));
-                    Action details = fileChooser.getActionMap().get("viewTypeDetails");
-                    details.actionPerformed(null);
-                    recentFileList = new RecentFileChooser.RecentFileList(fileChooser);
-                    recentFileList.load();
-                    fileChooser.setAccessory(recentFileList);
-                    fileChooser.getAccessory().setPreferredSize(new Dimension(240,500));
-                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                }
                 int result = fileChooser.showOpenDialog(content);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
@@ -101,8 +97,9 @@ public class FunctionToolBar implements PositionUpdater {
                         XMLReader reader = new XMLReader(scoreModel.factory, Arrangement.TYPE, "root");
                         Arrangement root = (Arrangement) reader.run(inputStream);
                         if (root != null) {
-                            scoreModel.setFile(selectedFile);
                             scoreModel.setArrangement(root);
+                            scoreModel.setFile(selectedFile);
+                            scoreModel.updateScoreParameter();
                             scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
                             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
                             panelUpdater.updatePanel();
@@ -255,6 +252,7 @@ public class FunctionToolBar implements PositionUpdater {
             @Override
             public void actionPerformed(ActionEvent e) {
                 scoreModel.undo();
+                scoreModel.updateScoreParameter();
                 scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD)); // TODO
                 panelUpdater.updatePanel();
                 updateToolbar();
@@ -272,6 +270,7 @@ public class FunctionToolBar implements PositionUpdater {
             @Override
             public void actionPerformed(ActionEvent e) {
                 scoreModel.redo();
+                scoreModel.updateScoreParameter();
                 scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD)); // TODO
                 panelUpdater.updatePanel();
                 updateToolbar();
@@ -791,6 +790,20 @@ public class FunctionToolBar implements PositionUpdater {
         }
     }
 
+    private void createFileChooser() {
+        fileChooser = new JFileChooser();
+        fileChooser.setPreferredSize(new Dimension(800,500));
+        Action details = fileChooser.getActionMap().get("viewTypeDetails");
+        details.actionPerformed(null);
+        recentFileList = new RecentFileChooser.RecentFileList(fileChooser);
+        recentFileList.load();
+        fileChooser.setAccessory(recentFileList);
+        fileChooser.getAccessory().setPreferredSize(new Dimension(240,500));
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        FileFilter filter = new FileNameExtensionFilter("Ambitus",ScoreModel.FILE_EXTENSION);
+        fileChooser.setFileFilter(filter);
+    }
+
     private void saveFile(File fileToSave, JPanel content, String title) {
         if (fileToSave == null) {
             JFileChooser fileChooser = new JFileChooser();
@@ -801,6 +814,9 @@ public class FunctionToolBar implements PositionUpdater {
             int userSelection = fileChooser.showSaveDialog(content);
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 fileToSave = fileChooser.getSelectedFile();
+                if (!fileToSave.getName().endsWith("." + ScoreModel.FILE_EXTENSION)) {
+                    fileToSave = new File(fileToSave.getParentFile(), fileToSave.getName() + "." + ScoreModel.FILE_EXTENSION);
+                }
             }
         }
         if (fileToSave!=null) {
@@ -811,6 +827,9 @@ public class FunctionToolBar implements PositionUpdater {
                 XMLWriter writer = new XMLWriter();
                 writer.run(arrangement, outputStream);
                 scoreModel.getArrangement().clearHistory();
+                scoreModel.setFile(fileToSave);
+                scoreModel.updateScoreParameter();
+                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REDRAW));
                 panelUpdater.updatePanel();
                 updateToolbar();
             } catch (IOException ioe) {

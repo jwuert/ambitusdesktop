@@ -211,7 +211,10 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         int enharmonicShift = (shft?1:ctrl?-1:0);
         if (location==null) {
             if (scoreModel.getArrangement().getNumberOfActiveMidiTracks()==0) {
-                scoreModel.setArrangement(Wizard.createArrangement(scoreModel, this));
+                Arrangement newArrangement = Wizard.createArrangement(scoreModel, this);
+                if (newArrangement != null) {
+                    scoreModel.setArrangement(newArrangement);
+                }
                 this.updateScore(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
                 panelUpdater.updatePanel();
             } else {

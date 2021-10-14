@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ScoreModel {
-    private static final String DIRECTORY = "Ambitus";
+    public static final String FILE_EXTENSION = "amb";
     private static final boolean debug = true;
     private static boolean debugScore = false;
 
@@ -559,6 +559,8 @@ public class ScoreModel {
             getScoreParameter().setDisplayStretchFactor(stretchFactor);
             getScoreParameter().setMetricLevel(groupLevel);
             getScoreParameter().setResolutionInTicks(arrangement.getResolutionInTicks());
+            getScoreParameter().setPPQ(arrangement.getPPQ());
+            getScoreParameter().setFilename(this.file == null ? "" : this.file.getName());
         }
     }
 
