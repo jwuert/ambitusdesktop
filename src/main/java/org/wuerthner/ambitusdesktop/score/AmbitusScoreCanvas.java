@@ -1,5 +1,7 @@
 package org.wuerthner.ambitusdesktop.score;
 
+import org.wuerthner.cwn.api.CwnAccent;
+import org.wuerthner.cwn.api.CwnSymbolEvent;
 import org.wuerthner.cwn.api.ScoreCanvas;
 
 import javax.swing.*;
@@ -24,7 +26,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         this.zoom = zoom;
         this.height = height;
         this.stroke = new BasicStroke((int)zoom);
-        // ImageIcon imageIcon = new ImageIcon(getClass().getResource("/images/note1.png"));
+        // g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         init();
     }
 
@@ -52,8 +54,14 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
             double wd = textsize.getWidth();
             offset = (int)(-0.5*wd);
         }
+        if (fontName.endsWith("Muted")) {
+            g.setColor(Color.LIGHT_GRAY);
+        }
         g.setFont(fontMap.get(fontName));
         g.drawString(text, (int)(offset + (x+1)*zoom), (int)((y-2)*zoom));
+        if (fontName.endsWith("Muted")) {
+            g.setColor(Color.BLACK);
+        }
     }
 
     @Override
@@ -77,6 +85,15 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         // g.drawLine(x,y,x,y);
         g.setColor(Color.BLACK);
         g.fillOval(x, y, (int)zoom+3,(int)zoom+3);
+    }
+
+    @Override
+    public void drawDot(int x, int y, int color) {
+        x = (int) (x * zoom)+2;
+        y = (int) (y * zoom)+1;
+        g.setColor(color==0 ? Color.MAGENTA : Color.GREEN);
+        g.fillOval(x, y, (int)zoom+4,(int)zoom+4);
+        g.setColor(Color.BLACK);
     }
 
     @Override
@@ -193,6 +210,16 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         imageMap.put("sign2", getImage("sgnSharp2"));
         imageMap.put("sign3", getImage("sgnNat"));
 
+        // accents
+        for (String accentName : CwnAccent.ACCENTS) {
+            imageMap.put(accentName, getImage("accents/sacc" + accentName));
+        }
+        // symbols
+        for (String symbolName : CwnSymbolEvent.SYMBOLS) {
+            imageMap.put(symbolName, getImage("symbols/ssym" + symbolName));
+            imageMap.put(symbolName + "-h", getImage("symbols/ssym" + symbolName + "-h"));
+        }
+
         //
         // double size
         //
@@ -236,6 +263,16 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         imageMap.put("d-sign1", getImage("sgnSharp-d"));
         imageMap.put("d-sign2", getImage("sgnSharp2-d"));
         imageMap.put("d-sign3", getImage("sgnNat-d"));
+
+        // accents
+        for (String accentName : CwnAccent.ACCENTS) {
+            imageMap.put("d-"+accentName, getImage("accents/sacc" + accentName + "-d"));
+        }
+        // symbols
+        for (String symbolName : CwnSymbolEvent.SYMBOLS) {
+            imageMap.put("d-"+symbolName, getImage("symbols/ssym" + symbolName + "-d"));
+            imageMap.put("d-"+symbolName + "-h", getImage("symbols/ssym" + symbolName + "-d-h"));
+        }
 
         //
         // medium size (1.5)
@@ -281,6 +318,20 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         imageMap.put("m-sign2", getImage("sgnSharp2-m"));
         imageMap.put("m-sign3", getImage("sgnNat-m"));
 
+        // accents
+        for (String accentName : CwnAccent.ACCENTS) {
+            imageMap.put("m-"+accentName, getImage("accents/sacc" + accentName + "-m"));
+        }
+        // symbols
+        for (String symbolName : CwnSymbolEvent.SYMBOLS) {
+            imageMap.put("m-"+symbolName, getImage("symbols/ssym" + symbolName + "-m"));
+            imageMap.put("m-"+symbolName + "-h", getImage("symbols/ssym" + symbolName + "-m-h"));
+        }
+
+        //
+        // CORRECTIONS
+        //
+
         // Y-Pos Correction:
         correctionMap.put("head1", -2);
         correctionMap.put("head2", -2);
@@ -297,6 +348,15 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         correctionMap.put("rest16", 2);
         correctionMap.put("rest32", 2);
         correctionMap.put("rest64", 2);
+
+        correctionMap.put("flat", 0);
+        correctionMap.put("sharp", 0);
+        correctionMap.put("nat", 0);
+        correctionMap.put("sign-2", -2);
+        correctionMap.put("sign-1", -2);
+        correctionMap.put("sign1", -2);
+        correctionMap.put("sign2", -2);
+        correctionMap.put("sign3", -2);
 
         // Y-Pos Correction (Medium, zoom=1.5):
         // rests
@@ -326,7 +386,9 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         fontMap.put("text", new Font("Arial", Font.PLAIN, (int)(9*zoom)));
         fontMap.put("nole", new Font("Arial", Font.PLAIN, (int)(7*zoom)));
         fontMap.put("track", new Font("Arial", Font.PLAIN, (int)(18*zoom)));
+        fontMap.put("trackMuted", new Font("Arial", Font.PLAIN, (int)(18*zoom)));
         fontMap.put("lyrics", new Font("Arial", Font.PLAIN, (int)(9*zoom)));
+        fontMap.put("markup", new Font("Arial", Font.PLAIN, (int)(9*zoom)));
     }
 
     private Image getImage(String name) {

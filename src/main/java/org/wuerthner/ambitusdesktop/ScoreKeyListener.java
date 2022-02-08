@@ -4,6 +4,7 @@ import org.wuerthner.ambitus.model.MidiTrack;
 import org.wuerthner.ambitus.model.NoteEvent;
 import org.wuerthner.ambitus.tool.SelectionTools;
 import org.wuerthner.ambitusdesktop.score.AmbitusSelection;
+import org.wuerthner.ambitusdesktop.service.MidiService;
 import org.wuerthner.cwn.score.ScoreUpdate;
 
 import javax.swing.*;
@@ -12,6 +13,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class ScoreKeyListener {
+    private final MidiService midiService = new MidiService();
     private final JPanel panel;
     private final ScoreModel scoreModel;
     private final ToolbarUpdater toolbarUpdater;
@@ -34,6 +36,7 @@ public class ScoreKeyListener {
     private final String kFlat = "b";
     private final String kRefresh = "F5";
     private final String kDot = "dot";
+    private final String kMute = "mute";
 
     public ScoreKeyListener(JPanel scorePanel, ScoreModel scoreModel, ToolbarUpdater toolbarUpdater) {
         this.panel = scorePanel;
@@ -61,6 +64,7 @@ public class ScoreKeyListener {
         add(scorePanel, kFlat, KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK);
         add(scorePanel, kRefresh, KeyEvent.VK_F5, 0);
         add(scorePanel, kDot, KeyEvent.VK_PERIOD, KeyEvent.CTRL_DOWN_MASK);
+        add(scorePanel, kMute, KeyEvent.VK_M, KeyEvent.CTRL_DOWN_MASK);
     }
 
     private void add(JPanel panel, String key, int code, int modifiers) {
@@ -75,16 +79,22 @@ public class ScoreKeyListener {
 
         @Override
         public void actionPerformed(ActionEvent actionEvt) {
+            if (!scoreModel.getKeyboardShortcutsActive()) {
+                return;
+            }
             String cmd = actionEvt.getActionCommand();
             AmbitusSelection selection = scoreModel.getSelection();
             MidiTrack track = scoreModel.getArrangement().getSelectedMidiTrack();
             int staffIndex = scoreModel.getSelection().getSelectedStaff();
+            NoteEvent noteEvent;
             switch (cmd) {
                 case kLeft:
-                    selectionTools.moveCursorLeft(track, selection, NoteEvent.class);
+                    noteEvent = selectionTools.moveCursorLeft(track, selection, NoteEvent.class);
+                    midiService.playPitch(noteEvent);
                     break;
                 case kRight:
-                    selectionTools.moveCursorRight(track, selection, NoteEvent.class);
+                    noteEvent = selectionTools.moveCursorRight(track, selection, NoteEvent.class);
+                    midiService.playPitch(noteEvent);
                     break;
                 case kLeftCtrl:
                     selectionTools.moveNoteLeft(scoreModel.getArrangement(), scoreModel.getGridTicks());
@@ -148,6 +158,10 @@ public class ScoreKeyListener {
                 case kDot:
                     selectionTools.dot(scoreModel.getArrangement(), scoreModel.getGridTicks());
                     scoreModel.getScoreBuilder().update(new ScoreUpdate(track, selection).extendRangeByOneBar());
+                    break;
+                case kMute:
+                    scoreModel.toggleMute();
+                    scoreModel.getScoreBuilder().update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
                     break;
                 default:
             }

@@ -1,12 +1,8 @@
 package org.wuerthner.ambitusdesktop;
 
-import org.wuerthner.ambitus.model.AmbitusFactory;
-import org.wuerthner.ambitus.model.Arrangement;
-import org.wuerthner.ambitus.model.MidiTrack;
-import org.wuerthner.ambitus.model.NoteEvent;
+import org.wuerthner.ambitus.model.*;
 import org.wuerthner.ambitus.tool.SelectionTools;
 import org.wuerthner.ambitusdesktop.score.AmbitusScoreCanvas;
-import org.wuerthner.ambitusdesktop.score.AmbitusScoreLayout;
 import org.wuerthner.ambitusdesktop.service.MidiService;
 import org.wuerthner.ambitusdesktop.ui.ArrangementConfig;
 import org.wuerthner.ambitusdesktop.ui.BarConfig;
@@ -21,6 +17,8 @@ import org.wuerthner.cwn.score.ScoreUpdate;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 public class ScorePanel extends JPanel implements MouseMotionListener, MouseListener {
@@ -121,7 +119,6 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         ScoreLayout scoreLayout = scoreModel.getLayout();
         ScorePresenter presenter = new ScorePresenter(builder, scoreCanvas, scoreLayout, (CwnSelection<CwnEvent>)(CwnSelection<?>) scoreModel.getSelection());
         if (scoreModel.debugScore()) presenter.debug();
-
         if (scoreLayout!=null && builder!=null && scoreModel.getSelection()!=null) {
             presenter.present(scoreModel.getTitle(), scoreModel.getSubtitle(), scoreModel.getComposer(), barOffset);
             if (scoreModel.getArrangement().getActiveMidiTrackList().isEmpty()) {
@@ -135,10 +132,7 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
                     int endBar = presenter.getFirstBarCompletelyOutOfDisplay();
                     CwnTrack firstTrack = scoreModel.getTrackList().get(0);
                     endDisplayPosition = PositionTools.getPosition(firstTrack, new Trias(endBar, 0, 0));
-
-                    // System.out.println("-> " + scoreModel.getSelection().getCursorPosition() + " ? " + presenter.getFirstPositionPartiallyOutOfDisplay());
                     if (scoreModel.getSelection().getCursorPosition() >= presenter.getFirstPositionPartiallyOutOfDisplay()) {
-                        // System.out.println("yes");
                         endDisplayPosition = scoreModel.getArrangement().findLastPosition();
                         long newStartPosition = presenter.getFirstPositionPartiallyOutOfDisplay();
                         int newBarOffset = PositionTools.getTrias(firstTrack, newStartPosition).bar;
@@ -172,6 +166,7 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
                 }
             }
             toolbarUpdater.updateNoteBar();
+            toolbarUpdater.updateSymbolBar();
         } else {
             System.err.println("layout: " + (scoreLayout!=null) + ", builder: " + (builder!=null) + ", sel: " + scoreModel.getSelection());
         }
@@ -196,10 +191,32 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         return location;
     }
 
+
+    BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+    Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImg, new Point(0, 0), "blank cursor");
+    Cursor handCursor = new Cursor(Cursor.HAND_CURSOR);
+    Cursor crosshairCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+    Cursor arrowCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+
     @Override
     public void mouseMoved(MouseEvent e) {
         Location location = getLocation(e);
         scoreModel.getSelection().setCursor(location);
+        if (location == null) {
+            this.setCursor(handCursor);
+        } else if (location.barConfig) {
+            this.setCursor(handCursor);
+        } else if (location.scoreBar == null) {
+            this.setCursor(arrowCursor);
+        } else {
+            // score sheet
+            if (scoreModel.getNoteSelector().isNote()) {
+                this.setCursor(blankCursor);
+            } else {
+                this.setCursor(crosshairCursor);
+                scoreModel.getSelection().setCursor(null);
+            }
+        }
         this.updateUI();
     }
 
@@ -208,6 +225,7 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         Location location = getLocation(e);
         boolean ctrl = (e.getModifiers() & KeyEvent.CTRL_MASK) > 0;
         boolean shft = (e.getModifiers() & KeyEvent.SHIFT_MASK) > 0;
+        boolean alt = (e.getModifiers() & KeyEvent.ALT_MASK) > 0;
         int enharmonicShift = (shft?1:ctrl?-1:0);
         if (location==null) {
             if (scoreModel.getArrangement().getNumberOfActiveMidiTracks()==0) {
@@ -228,19 +246,33 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
             panelUpdater.updatePanel();
         } else {
             if (location.scoreBar != null) {
-                int pitch = location.pitch + enharmonicShift;
-                int staff = location.staffIndex;
-                long pos = location.position;
-                CwnTrack track = scoreModel.getTrackList().get(staff);
-                long duration = (long) NoteSelector.getNoteLength(scoreModel.getPPQ(), scoreModel.getNoteSelector());
-                scoreModel.addOrSelectNoteEvent(pos, pitch, enharmonicShift, staff);
-                // this.updateScore(new ScoreUpdate(scoreModel.getArrangement().getSelectedMidiTrack(), pos, pos+duration));
-                // this.updateScore((new ScoreUpdate(ScoreUpdate.Type.REBUILD).restrictToTrack(track).restrictToRange(pos, pos+duration)));
-                NoteEvent note = factory.createElement(NoteEvent.TYPE);
-                note.performTransientSetAttributeValueOperation(NoteEvent.pitch, pitch);
-                note.performTransientSetAttributeValueOperation(NoteEvent.duration, duration);
-                note.performTransientSetAttributeValueOperation(NoteEvent.velocity, 100);
-                midiService.playPitch(note);
+                if (scoreModel.getNoteSelector().isNote()) {
+                    // NOTE
+                    int pitch = location.pitch + enharmonicShift;
+                    int staff = location.staffIndex;
+                    long pos = location.position;
+                    CwnTrack track = scoreModel.getTrackList().get(staff);
+                    long duration = (long) NoteSelector.getNoteLength(scoreModel.getPPQ(), scoreModel.getNoteSelector());
+                    scoreModel.addOrSelectNoteEvent(pos, pitch, enharmonicShift, staff, alt);
+                    // this.updateScore(new ScoreUpdate(scoreModel.getArrangement().getSelectedMidiTrack(), pos, pos+duration));
+                    // this.updateScore((new ScoreUpdate(ScoreUpdate.Type.REBUILD).restrictToTrack(track).restrictToRange(pos, pos+duration)));
+
+                    NoteEvent note = factory.createElement(NoteEvent.TYPE);
+                    note.performTransientSetAttributeValueOperation(NoteEvent.pitch, pitch);
+                    note.performTransientSetAttributeValueOperation(NoteEvent.duration, duration);
+                    note.performTransientSetAttributeValueOperation(NoteEvent.velocity, 100);
+                    midiService.playPitch(note);
+                } else if (scoreModel.getNoteSelector().isAccent()) {
+                    // ACCENT
+                    int pitch = location.pitch + enharmonicShift;
+                    int staff = location.staffIndex;
+                    long pos = location.position;
+                    Optional<NoteEvent> noteEventOptional = scoreModel.selectNoteEvent(pos, pitch, enharmonicShift, staff);
+                    if (noteEventOptional.isPresent()) {
+                        NoteEvent noteEvent = noteEventOptional.get();
+                        scoreModel.getArrangement().addAccent(noteEvent, scoreModel.getNoteSelector().getIndex());
+                    }
+                }
             } else if (location.staffIndex >= 0) {
                 scoreModel.getSelection().set(location.staffIndex);
                 this.updateScore(new ScoreUpdate());
@@ -261,20 +293,40 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
     public void mouseDragged(MouseEvent e) {
         dragLocation = Optional.ofNullable(getLocation(e));
         if (pressLocation.isPresent() && dragLocation.isPresent()) {
-            scoreModel.getSelection().setMouseFrame(-1, pressLocation.get().position, dragLocation.get().position);
+            int staff = -1;
+            if (scoreModel.accents()) {
+                staff = dragLocation.get().staffIndex;
+                scoreModel.getSelection().setMouseFrame(staff, pressLocation.get().position, dragLocation.get().position);
+                scoreModel.getSelection().set(staff, CwnSelection.SelectionType.POSITION);
+            } else {
+                int minStaffIndex = Math.min(pressLocation.get().staffIndex, dragLocation.get().staffIndex);
+                int maxStaffIndex = Math.max(pressLocation.get().staffIndex, dragLocation.get().staffIndex);
+                staff = minStaffIndex==maxStaffIndex ? minStaffIndex : -1;
+                scoreModel.getSelection().setMouseFrame(staff, pressLocation.get().position, dragLocation.get().position);
+                scoreModel.getSelection().set(staff, CwnSelection.SelectionType.NOTE);
+            }
         }
         updateScore(new ScoreUpdate());
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        boolean notesOnly = !( (e.getModifiers() & KeyEvent.SHIFT_MASK) > 0);
         releaseLocation = Optional.ofNullable(getLocation(e));
         if (pressLocation.isPresent() && releaseLocation.isPresent()) {
             if (! (pressLocation.get().barConfig && releaseLocation.get().barConfig)) {
-                scoreModel.select(pressLocation.get(), releaseLocation.get());
+                if (pressLocation.get().x != releaseLocation.get().x) {
+                    scoreModel.select(pressLocation.get(), releaseLocation.get(), notesOnly);
+                }
             } else {
                 scoreModel.getSelection().getPointer().clear();
             }
+        }
+        if (scoreModel.getNoteSelector().isSymbol()) {
+            // SYMBOL
+            System.out.println("=> Symbol: " + scoreModel.getNoteSelector().name() + ", " + scoreModel.getNoteSelector().getIndex());
+            scoreModel.addOrSelectSymbolEvent(pressLocation, releaseLocation, scoreModel.getNoteSelector().name());
+
         }
         dragLocation = Optional.empty();
         scoreModel.getSelection().unsetMouseFrame();

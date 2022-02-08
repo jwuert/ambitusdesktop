@@ -23,7 +23,7 @@ import javax.sound.midi.Track;
 import javax.sound.midi.Transmitter;
 
 public class MidiService {
-    public static final int initialSleep = 300;
+    public static final int initialSleep = 500;
 //    private static final SelectionTools selectionTools = new SelectionTools();
     private static MidiDeviceHandler deviceHandler = new MidiDeviceHandler();
 

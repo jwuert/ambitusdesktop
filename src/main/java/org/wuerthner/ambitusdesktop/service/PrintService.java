@@ -10,6 +10,7 @@ import org.wuerthner.sport.api.ModelElement;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.StreamSupport;
@@ -69,7 +70,7 @@ public class PrintService {
             long endPosition = arrangement.findLastPosition();
             // ScoreParameter scoreParameter = new ScoreParameter(startDisplayPosition, endDisplayPosition, ppq, resolutionInTicks, groupLevel, stretchFactor, Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS);
             ScoreParameter scoreParameter = new ScoreParameter(ppq, resolutionInTicks, groupLevel, stretchFactor, flags,
-                    typeList, false, 0);
+                    typeList, new ArrayList<>(), 0);
 
             ScorePrinter printer = new ScorePrinter();
             String lyString = printer.print(title, subtitle, composer, autoBeam, scoreParameter, trackList, endPosition);

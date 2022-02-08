@@ -59,7 +59,7 @@ public class BarConfig {
             String[] parameters = pd.getParameters();
             if (parameters != null) {
                 String newName = parameters[0];
-                boolean newMute = parameters[1].equals("true");
+                boolean newMute = (Boolean.valueOf(parameters[1]));
                 int newVolume = Arrays.asList(MidiTrack.VOLUMES).indexOf(parameters[2]);
                 int channelSelection = Arrays.asList(MidiTrack.CHANNELS).indexOf(parameters[3]);
                 int instrumentSelection = Arrays.asList(MidiTrack.MIDI_INSTRUMENTS).indexOf(parameters[4]);

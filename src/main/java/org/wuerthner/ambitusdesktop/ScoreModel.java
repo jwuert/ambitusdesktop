@@ -5,7 +5,6 @@ import org.wuerthner.ambitus.template.Template;
 import org.wuerthner.ambitus.tool.AbstractSelection;
 import org.wuerthner.ambitusdesktop.score.AmbitusScoreLayout;
 import org.wuerthner.ambitusdesktop.score.AmbitusSelection;
-import org.wuerthner.ambitusdesktop.ui.RecentFileChooser;
 import org.wuerthner.cwn.api.*;
 import org.wuerthner.cwn.position.PositionTools;
 import org.wuerthner.cwn.score.Location;
@@ -24,19 +23,24 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class ScoreModel {
     public static final String FILE_EXTENSION = "amb";
-    private static final boolean debug = true;
+    private static final List<Markup> markup = Arrays.asList(Markup.PARALLELS, Markup.LYRICS, Markup.NOTE_ATTRIBUTES);
+    private static final boolean debug = false;
     private static boolean debugScore = false;
 
     private NoteSelector noteSelector = NoteSelector.N8;
     private NoteSelector gridSelector = NoteSelector.N8;
     private NoteSelector tupletSelector = NoteSelector.T1;
+    private NoteSelector voiceSelector = NoteSelector.V1;
 
     private File file = null;
     private double zoom = 1.5; // 0=auto, 1, 2
     private boolean lyrics = false;
+    private boolean accents = false;
+    private boolean keyboardShortcutsActive = true;
     private int numberOfSystems = 9999;
 
     private Arrangement arrangement = null;
@@ -66,6 +70,7 @@ public class ScoreModel {
         arrangement.setSelection(new AmbitusSelection());
         setNoteSelector(NoteSelector.N4);
         setTupletSelector(NoteSelector.T1);
+        setVoiceSelector(NoteSelector.V1);
         this.width = width;
         scoreLayout = new AmbitusScoreLayout((int) (width * 1.0 / getZoom()), getPPQ(), false);
         ScoreParameter scoreParameter = createScoreParameter(arrangement);
@@ -86,7 +91,7 @@ public class ScoreModel {
                 arrangement.getStretchFactor(),
                 Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
                 durationTypeList,
-                false, 0);
+                markup, 0);
         return scoreParameter;
     }
 
@@ -115,6 +120,10 @@ public class ScoreModel {
     public boolean debugScore() {
         return debugScore;
     }
+
+    public boolean getKeyboardShortcutsActive() { return keyboardShortcutsActive; }
+
+    public void setKeyboardShortcutsActive(boolean active) { keyboardShortcutsActive = active; }
 
     public int getPPQ() {
         return arrangement==null ? 0 : arrangement.getPPQ();
@@ -155,6 +164,18 @@ public class ScoreModel {
         lyrics = !lyrics;
     }
 
+    public boolean toggleAccents() {
+        accents = !accents;
+        return accents;
+    }
+
+    public void toggleMute() {
+        int selectedStaff = getSelection().getSelectedStaff();
+        MidiTrack track = (MidiTrack) arrangement.getTrackList().get(selectedStaff);
+        boolean mute = track.getMute();
+        arrangement.setTrackMute(track, !mute);
+    }
+
     public void setLyrics(boolean b) {
         lyrics = b;
     }
@@ -162,6 +183,8 @@ public class ScoreModel {
     public boolean lyrics() {
         return lyrics;
     }
+
+    public boolean accents() { return accents; }
 
     public ScoreBuilder getScoreBuilder() {
         return scoreBuilder;
@@ -208,8 +231,16 @@ public class ScoreModel {
         this.tupletSelector = tupletSelector;
     }
 
+    public void setVoiceSelector(NoteSelector voiceSelector) {
+        this.voiceSelector = voiceSelector;
+    }
+
     public NoteSelector getTupletSelector() {
         return this.tupletSelector;
+    }
+
+    public NoteSelector getVoiceSelector() {
+        return this.voiceSelector;
     }
 
     public int getGridTicks() {
@@ -224,27 +255,83 @@ public class ScoreModel {
         }
     }
 
-    public void addOrSelectNoteEvent(long position, int pitch, int enharmonicShift, int staff) {
+    public void removeTrack() {
+        if (arrangement!=null) {
+            MidiTrack track = (MidiTrack) arrangement.getTrackList().get(getSelection().getSelectedStaff());
+            arrangement.removeTrack(track);
+        }
+    }
+
+    public Optional<NoteEvent> selectNoteEvent(long position, int pitch, int enharmonicShift, int staff) {
+        Optional<NoteEvent> noteEventOptional = Optional.empty();
         if (arrangement != null) {
             AbstractSelection selection = arrangement.getSelection();
             MidiTrack track = arrangement.getChildrenByClass(MidiTrack.class).get(staff);
             NoteEvent note = track.findFirstEventAtPositionOrNull(position, NoteEvent.class);
+            if (note != null && note.getPitch() == pitch) {
+                // SELECT
+                selection.set(note, staff, CwnSelection.SelectionType.NOTE);
+                noteEventOptional = Optional.of(note);
+            }
+        }
+        return noteEventOptional;
+    }
+
+    public void addOrSelectNoteEvent(long position, int pitch, int enharmonicShift, int staff, boolean selectOnly) {
+        if (arrangement != null) {
+            AbstractSelection selection = arrangement.getSelection();
+            MidiTrack track = arrangement.getChildrenByClass(MidiTrack.class).get(staff);
+            NoteEvent note = track.findFirstNoteAtPositionOrNull(position, pitch);
             if (note!=null && note.getPitch()==pitch) {
                 // SELECT
                 selection.set(note, staff, CwnSelection.SelectionType.NOTE);
+            } else if (selectOnly) {
+                note = track.findFirstNoteAtPositionOrNull(position);
+                if (note!=null) {
+                    selection.set(note, staff, CwnSelection.SelectionType.NOTE);
+                }
             } else {
                 // CREATE
                 long duration = (long) (noteSelector.getNoteLength() * getPPQ() * 4 * tupletSelector.getTupletFactor());
+                int voice = voiceSelector==NoteSelector.V1 ? 0 : 1;
                 NoteEvent noteEvent = factory.createElement(NoteEvent.TYPE);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.position, position);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.duration, duration);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.pitch, pitch);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.shift, enharmonicShift);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.velocity, 87);
+                noteEvent.performTransientSetAttributeValueOperation(NoteEvent.voice, voice);
                 arrangement.addEvent(track, noteEvent);
                 selection.unsetMouseFrame();
                 int i = arrangement.getChildrenByClass(MidiTrack.class).indexOf(track);
                 selection.set(noteEvent, i, CwnSelection.SelectionType.NOTE);
+                scoreBuilder.update(new ScoreUpdate(track, selection));
+            }
+        }
+    }
+
+    public void addOrSelectSymbolEvent(Optional<Location> startPosition, Optional<Location> endPosition, String name) {
+        if (arrangement != null && startPosition.isPresent() && endPosition.isPresent()) {
+            long position = startPosition.get().position;
+            long duration = endPosition.get().position - position;
+            int staff = endPosition.get().staffIndex;
+            AbstractSelection selection = arrangement.getSelection();
+            MidiTrack track = arrangement.getChildrenByClass(MidiTrack.class).get(staff);
+            SymbolEvent symbol = track.findFirstEventAtPositionOrNull(position, SymbolEvent.class);
+            if (symbol!=null && symbol.getSymbolName().equals(name)) {
+                // SELECT
+                selection.set(symbol, staff, CwnSelection.SelectionType.NOTE);
+            } else {
+                // CREATE
+                SymbolEvent symbolEvent = factory.createElement(SymbolEvent.TYPE);
+                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.duration, duration);
+                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.name, name);
+                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.position, position);
+                arrangement.addEvent(track, symbolEvent);
+                System.out.println("yes");
+                selection.unsetMouseFrame();
+                int i = arrangement.getChildrenByClass(MidiTrack.class).indexOf(track);
+                selection.set(symbolEvent, i, CwnSelection.SelectionType.NOTE);
                 scoreBuilder.update(new ScoreUpdate(track, selection));
             }
         }
@@ -404,17 +491,17 @@ public class ScoreModel {
 //        }
 //    }
 
-    public Arrangement createArrangement(String title, String subtitle, String composer, int tempo, int keySelection, int templateSelection) {
+    public Arrangement createArrangement(String title, String subtitle, String composer, int tempo, int keySelection, String timeSignature, int templateSelection) {
         Template template = Template.createTemplate(templateSelection);
-        TimeSignature timeSignature = new SimpleTimeSignature("4/4");
-        Arrangement arrangement = template.apply(keySelection, tempo, timeSignature, factory);
+        Arrangement arrangement = template.apply(keySelection, tempo, new SimpleTimeSignature(timeSignature), factory);
         arrangement.init(title, subtitle, composer);
         arrangement.setSelection(new AmbitusSelection());
         // updateWidth(width);
         return arrangement;
     }
 
-    public void select(Location fromPosition, Location toPosition) {
+    public void select(Location fromPosition, Location toPosition, boolean notesOnly) {
+        System.out.println("notesOnly: " + notesOnly);
         long fromTick = fromPosition.position;
         long toTick = toPosition.position;
         List<ModelElement> eventList = new ArrayList<>();
@@ -422,9 +509,11 @@ public class ScoreModel {
         int minStaffIndex = Math.min(fromPosition.staffIndex, toPosition.staffIndex);
         int maxStaffIndex = Math.max(fromPosition.staffIndex, toPosition.staffIndex);
         List<ModelElement> trackList = arrangement.getChildrenByType(MidiTrack.TYPE);
+
+        Class<? extends Event> clasz = notesOnly ? NoteEvent.class : Event.class;
         for (ModelElement midiTrack : trackList) {
             if (minStaffIndex <= index && index <= maxStaffIndex) {
-                for (ModelElement midiEvent : midiTrack.getChildrenByClass(Event.class)) {
+                for (ModelElement midiEvent : midiTrack.getChildrenByClass(clasz)) {
                     Event event = (Event) midiEvent;
                     long start = event.getPosition();
                     if (fromTick <= start && start <= toTick) {

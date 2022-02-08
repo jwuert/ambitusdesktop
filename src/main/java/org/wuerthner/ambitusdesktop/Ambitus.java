@@ -23,8 +23,9 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
     private final JPanel rangePanel;
     private final ScoreModel scoreModel = new ScoreModel(WIDTH);
 
-    private NoteToolBar noteToolBar;
     private FunctionToolBar functionToolBar;
+    private NoteToolBar noteToolBar;
+    private SymbolToolBar symbolToolBar;
 
     public Ambitus() {
 //        try {
@@ -59,14 +60,18 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
         //
         functionToolBar = new FunctionToolBar(scoreModel, this, this, this, content, WIDTH);
 
-        noteToolBar = new NoteToolBar(scoreModel, this);
+        noteToolBar = new NoteToolBar(scoreModel, this, this, content);
         JToolBar toolbar2 = noteToolBar.getToolBar();
+
+        symbolToolBar = new SymbolToolBar(scoreModel, this, this);
+        symbolToolBar.setVisible(false);
 
         // ToolPanel
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
         toolPanel.add(functionToolBar.getFunctionToolbar(), BorderLayout.PAGE_START);
-        toolPanel.add(toolbar2, BorderLayout.PAGE_END);
+        toolPanel.add(toolbar2, BorderLayout.CENTER);
+        toolPanel.add(symbolToolBar.getToolBar(), BorderLayout.PAGE_END);
         return toolPanel;
     }
 
@@ -79,7 +84,25 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
     }
 
     public void updateNoteBar() {
-        noteToolBar.setSelection(scoreModel.getSelection());
+        if (scoreModel.getNoteSelector().isNote()) {
+            noteToolBar.setSelection(scoreModel.getSelection());
+        } else {
+            noteToolBar.clearSelection();
+        }
+    }
+
+    public void updateSymbolBar() {
+        if (scoreModel.getNoteSelector().isSymbol()) {
+            symbolToolBar.setSelection(scoreModel.getSelection());
+        } else {
+            symbolToolBar.clearSelection();
+        }
+    }
+
+    public void updateNoteOrAccent() {
+        symbolToolBar.setVisible(scoreModel.accents());
+        noteToolBar.updateSelector(scoreModel.getNoteSelector());
+        symbolToolBar.updateSelector(scoreModel.getNoteSelector());
     }
 
     public void updatePanel() {
@@ -101,14 +124,15 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             int max = scoreModel.getArrangement().getNumberOfActiveMidiTracks() - 1;
-                            scoreModel.select(
-                                    new Location(null, range.start, 0, 0, 0, false, 0, 0, 0),
-                                    new Location(null, range.end, 0, max, 0, false, 0, 0, 0));
+//                            scoreModel.select(
+//                                    new Location(null, range.start, 0, 0, 0, false, 0, 0, 0),
+//                                    new Location(null, range.end, 0, max, 0, false, 0, 0, 0), true);
                             Trias trias = PositionTools.getTrias(scoreModel.getTrackList().get(0), range.start);
-                            int offset = (trias.bar - 1 < 0 ? trias.bar : trias.bar - 1);
+                            int offset = (trias.bar - 1 < 0 ? trias.bar : trias.bar);
                             scoreModel.getArrangement().setTransientBarOffset(offset);
                             scoreModel.getScoreParameter().setBarOffset(offset);
                             content.updateScore(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+                            updateToolbar();
                         }
                     };
                     rangeBtn.addActionListener(rangeAction);

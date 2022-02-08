@@ -12,9 +12,10 @@ import java.awt.*;
 public class Wizard {
     public static Arrangement createArrangement(ScoreModel scoreModel, Component content) {
         ParameterDialog pd = new ParameterDialog(new String[]{"Sheet Music Wizard"},
-                new String[]{"Title", "Subtitle", "Composer", "Tempo", "Key", "Template"},
+                new String[]{"Title", "Subtitle", "Composer", "Tempo", "Key", "Time Signature", "Template"},
                 new Object[]{"Untitled", "", "", "120",
                         ParameterDialog.makeCombo(Arrangement.KEYS, Arrangement.DEFAULT_KEY),
+                        "4/4",
                         ParameterDialog.makeCombo(Template.TEMPLATES, 0) },
                 content);
         String[] parameters = pd.getParameters();
@@ -24,10 +25,11 @@ public class Wizard {
             String composer = parameters[2];
             Integer tempo = Integer.valueOf(parameters[3]);
             int keySelection = ParameterDialog.get(Arrangement.KEYS, parameters[4]);
-            int templateSelection = ParameterDialog.get(Template.TEMPLATES, parameters[5]);
+            String timeSignature = parameters[5];
+            int templateSelection = ParameterDialog.get(Template.TEMPLATES, parameters[6]);
             if (keySelection >= 0 && templateSelection >= 0) {
                 Template template = Template.createTemplate(templateSelection);
-                return scoreModel.createArrangement(title, subtitle, composer, tempo, keySelection, templateSelection);
+                return scoreModel.createArrangement(title, subtitle, composer, tempo, keySelection, timeSignature, templateSelection);
             }
         }
         return null;

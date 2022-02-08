@@ -3,6 +3,7 @@ package org.wuerthner.ambitusdesktop;
 import org.wuerthner.ambitusdesktop.service.MidiService;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class ScorePlayer implements Runnable {
     final private JPanel panel;
@@ -20,6 +21,7 @@ public class ScorePlayer implements Runnable {
         boolean loop = true;
         try {
             Thread.sleep(20);
+            int screensaverLock = 1000;
             while (loop) {
                 Thread.sleep(50);
                 panel.updateUI();
@@ -29,6 +31,13 @@ public class ScorePlayer implements Runnable {
                     updater.updateToolbar();
                     positionUpdater.updatePosition();
                 }
+                if (screensaverLock==0) {
+                    screensaverLock = 1000;
+                    Point mouseLoc = MouseInfo.getPointerInfo().getLocation();
+                    Robot rob = new Robot();
+                    rob.mouseMove(mouseLoc.x, mouseLoc.y);
+                }
+                screensaverLock--;
             }
         } catch (Exception e) {
             e.printStackTrace();

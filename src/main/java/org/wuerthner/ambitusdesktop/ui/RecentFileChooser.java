@@ -101,7 +101,7 @@ public class RecentFileChooser {
 
             public void save() {
                 StringBuilder sb = new StringBuilder(128);
-                for (int index = 0; index < listModel.getSize(); index++) {
+                for (int index = listModel.getSize()-1; index>=0; index--) {
                     File file = listModel.getElementAt(index);
                     if (sb.length() > 0) {
                         sb.append(File.pathSeparator);
@@ -113,6 +113,7 @@ public class RecentFileChooser {
             }
 
             public void load() {
+                // .java/.userPrefs/org/wuerthner/ambitusdesktop/ui/
                 Preferences p = Preferences.userNodeForPackage(RecentFileChooser.class);
                 String listOfFiles = p.get("RectentFileList.fileList", null);
                 if (listOfFiles != null) {
