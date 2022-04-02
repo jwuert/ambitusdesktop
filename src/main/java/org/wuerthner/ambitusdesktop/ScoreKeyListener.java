@@ -128,12 +128,12 @@ public class ScoreKeyListener {
                     break;
                 case kPgUp:
                     staffIndex--;
-                    if (staffIndex<0) { staffIndex = scoreModel.getArrangement().getNumberOfActiveMidiTracks() - 1; }
+                    if (staffIndex<-1) { staffIndex = scoreModel.getArrangement().getNumberOfActiveMidiTracks() - 1; }
                     scoreModel.getSelection().set(staffIndex);
                     break;
                 case kPgDown:
                     staffIndex++;
-                    if (staffIndex == scoreModel.getArrangement().getNumberOfActiveMidiTracks()) { staffIndex = 0; }
+                    if (staffIndex == scoreModel.getArrangement().getNumberOfActiveMidiTracks()) { staffIndex = -1; }
                     scoreModel.getSelection().set(staffIndex);
                     break;
                 case kD:

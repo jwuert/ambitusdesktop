@@ -21,7 +21,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-public class ScorePanel extends JPanel implements MouseMotionListener, MouseListener {
+public class ScorePanel extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
     private final AmbitusFactory factory = new AmbitusFactory();
     private final MidiService midiService = new MidiService();
     private final ScoreModel scoreModel;
@@ -324,7 +324,6 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         }
         if (scoreModel.getNoteSelector().isSymbol()) {
             // SYMBOL
-            System.out.println("=> Symbol: " + scoreModel.getNoteSelector().name() + ", " + scoreModel.getNoteSelector().getIndex());
             scoreModel.addOrSelectSymbolEvent(pressLocation, releaseLocation, scoreModel.getNoteSelector().name());
 
         }
@@ -339,5 +338,17 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
 
     @Override
     public void mouseExited(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        if (e.getWheelRotation() < 0) {
+            scoreModel.getArrangement().decreaseBarOffset(1);
+        } else {
+            scoreModel.getArrangement().increaseBarOffset(1);
+        }
+        scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
+        updateScore(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+        toolbarUpdater.updateToolbar();
     }
 }

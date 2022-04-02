@@ -7,6 +7,7 @@ import org.wuerthner.cwn.api.ScoreCanvas;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
     final private BasicStroke stroke;
     final private Map<String,Integer> correctionMap = new HashMap<>();
     final private Map<String,Integer> correctionMapM = new HashMap<>();
+    final private Image background = getImage("paper4");
     private boolean outsideDrawArea = false;
 
     public AmbitusScoreCanvas(Graphics graphics, double zoom, int height) {
@@ -28,6 +30,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         this.stroke = new BasicStroke((int)zoom);
         // g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         init();
+        g.drawImage(background, 00,00,null);
     }
 
     @Override
@@ -114,7 +117,11 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
     @Override
     public void drawLine(int x1, int y1, int x2, int y2, int width) {
         g.setStroke(new BasicStroke((int)(width*zoom)));
-        g.drawLine((int)(x1*zoom)+1, (int)(y1*zoom), (int)(x2*zoom)-1, (int)(y2*zoom));
+        if (x1==x2) {
+            g.drawLine((int) (x1 * zoom) + 1, (int) (y1 * zoom), (int) (x2 * zoom) + 1, (int) (y2 * zoom));
+        } else {
+            g.drawLine((int) (x1 * zoom) + 1, (int) (y1 * zoom), (int) (x2 * zoom) - 1, (int) (y2 * zoom));
+        }
         g.setStroke(stroke);
     }
 

@@ -818,45 +818,45 @@ public class FunctionToolBar implements PositionUpdater {
 //        functionToolbar.add(refreshBtn);
 
         // Markup
-        JButton markupBtn = makeButton("toolbar/mark", "Toggle Markup", 24);
-        markupBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                List<Markup> list = scoreModel.getScoreBuilder().getScoreParameter().markup;
-                ParameterDialog pd = new ParameterDialog(new String[]{"Select Markup Elements"},
-                        new String[]{"Ambitus", "Attributes", "Parallels", "Intervals", "Crossings", "Lyrics", "Note Attributes", "Color Voices"},
-                        new Object[]{
-                                list.contains(Markup.AMBITUS),
-                                list.contains(Markup.ATTRIBUTES),
-                                list.contains(Markup.PARALLELS),
-                                list.contains(Markup.INTERVALS),
-                                list.contains(Markup.CROSSINGS),
-                                list.contains(Markup.LYRICS),
-                                list.contains(Markup.NOTE_ATTRIBUTES),
-                                list.contains(Markup.COLOR_VOICES)
-                        },
-                        content);
-                String[] parameters = pd.getParameters();
-                boolean update = false;
-                if (parameters != null) {
-                    List<Markup> newList = new ArrayList<>();
-                    if (Boolean.valueOf(parameters[0])) newList.add(Markup.AMBITUS);
-                    if (Boolean.valueOf(parameters[1])) newList.add(Markup.ATTRIBUTES);
-                    if (Boolean.valueOf(parameters[2])) newList.add(Markup.PARALLELS);
-                    if (Boolean.valueOf(parameters[3])) newList.add(Markup.INTERVALS);
-                    if (Boolean.valueOf(parameters[4])) newList.add(Markup.CROSSINGS);
-                    if (Boolean.valueOf(parameters[5])) newList.add(Markup.LYRICS);
-                    if (Boolean.valueOf(parameters[6])) newList.add(Markup.NOTE_ATTRIBUTES);
-                    if (Boolean.valueOf(parameters[7])) newList.add(Markup.COLOR_VOICES);
-                    update = !newList.equals(list);
-                    scoreModel.getScoreBuilder().getScoreParameter().markup = newList;
-                }
-                if (update) {
-                    scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-                    updateToolbar();
-                }
-            }
-        });
-        functionToolbar.add(markupBtn);
+//        JButton markupBtn = makeButton("toolbar/mark", "Toggle Markup", 24);
+//        markupBtn.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                List<Markup> list = scoreModel.getScoreBuilder().getScoreParameter().markup;
+//                ParameterDialog pd = new ParameterDialog(new String[]{"Select Markup Elements"},
+//                        new String[]{"Ambitus", "Attributes", "Parallels", "Intervals", "Crossings", "Lyrics", "Note Attributes", "Color Voices"},
+//                        new Object[]{
+//                                list.contains(Markup.AMBITUS),
+//                                list.contains(Markup.ATTRIBUTES),
+//                                list.contains(Markup.PARALLELS),
+//                                list.contains(Markup.INTERVALS),
+//                                list.contains(Markup.CROSSINGS),
+//                                list.contains(Markup.LYRICS),
+//                                list.contains(Markup.NOTE_ATTRIBUTES),
+//                                list.contains(Markup.COLOR_VOICES)
+//                        },
+//                        content);
+//                String[] parameters = pd.getParameters();
+//                boolean update = false;
+//                if (parameters != null) {
+//                    List<Markup> newList = new ArrayList<>();
+//                    if (Boolean.valueOf(parameters[0])) newList.add(Markup.AMBITUS);
+//                    if (Boolean.valueOf(parameters[1])) newList.add(Markup.ATTRIBUTES);
+//                    if (Boolean.valueOf(parameters[2])) newList.add(Markup.PARALLELS);
+//                    if (Boolean.valueOf(parameters[3])) newList.add(Markup.INTERVALS);
+//                    if (Boolean.valueOf(parameters[4])) newList.add(Markup.CROSSINGS);
+//                    if (Boolean.valueOf(parameters[5])) newList.add(Markup.LYRICS);
+//                    if (Boolean.valueOf(parameters[6])) newList.add(Markup.NOTE_ATTRIBUTES);
+//                    if (Boolean.valueOf(parameters[7])) newList.add(Markup.COLOR_VOICES);
+//                    update = !newList.equals(list);
+//                    scoreModel.getScoreBuilder().getScoreParameter().markup = newList;
+//                }
+//                if (update) {
+//                    scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+//                    updateToolbar();
+//                }
+//            }
+//        });
+//        functionToolbar.add(markupBtn);
 
         // Range
         JButton rangeBtn = makeButton("toolbar/bookmark", "Bookmark",24);
@@ -1213,6 +1213,7 @@ public class FunctionToolBar implements PositionUpdater {
         toolMap.get("export").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("stop").setEnabled(! notPlaying);
         toolMap.get("range").setEnabled(noOfTracks > 0);
+        updatePosition();
     }
 
     public JToolBar getFunctionToolbar() {
@@ -1229,8 +1230,10 @@ public class FunctionToolBar implements PositionUpdater {
         if (position == 0) {
             position = scoreModel.getArrangement().getBarOffsetPosition();
         }
-        CwnTrack track = scoreModel.getTrackList().get(0);
-        Trias trias = PositionTools.getTrias(track, position);
-        positionField.setText(trias.toFormattedString());
+        if (!scoreModel.getTrackList().isEmpty()) {
+            CwnTrack track = scoreModel.getTrackList().get(0);
+            Trias trias = PositionTools.getTrias(track, position);
+            positionField.setText(trias.toFormattedString());
+        }
     }
 }

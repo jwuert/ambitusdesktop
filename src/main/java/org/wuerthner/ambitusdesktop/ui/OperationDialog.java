@@ -9,8 +9,8 @@ public class OperationDialog {
     private final String operationName;
     private final JPanel content;
     private final Scope defaultScope;
-    private Optional<String> label;
-    private Optional<Object> defaultValue;
+    private Optional<String> label = Optional.empty();
+    private Optional<Object> defaultValue = Optional.empty();
     private String value = null;
 
     public OperationDialog(String operationName, JPanel content, boolean empty) {

@@ -91,7 +91,7 @@ public class ScoreModel {
                 arrangement.getStretchFactor(),
                 Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
                 durationTypeList,
-                markup, 0);
+                new ArrayList<>(markup), 0);
         return scoreParameter;
     }
 

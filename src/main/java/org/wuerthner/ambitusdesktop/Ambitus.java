@@ -32,7 +32,9 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 //        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
 //        }
-        final JFrame frame = new JFrame("Ambitus");
+        String version = getClass().getPackage().getImplementationVersion();
+        if (version==null) version = "IDE";
+        final JFrame frame = new JFrame("Ambitus " + version);
         updatePanel();
         content = makeContent();
         JComponent toolbar = makeToolBar();
@@ -50,6 +52,7 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
         frame.setVisible(true);
         content.addMouseMotionListener(content);
         content.addMouseListener(content);
+        content.addMouseWheelListener(content);
         new ScoreKeyListener(content, scoreModel, this);
         updateToolbar();
     }

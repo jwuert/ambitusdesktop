@@ -6,8 +6,10 @@ import org.wuerthner.ambitusdesktop.*;
 import org.wuerthner.ambitusdesktop.score.AmbitusSelection;
 import org.wuerthner.cwn.api.CwnNoteEvent;
 import org.wuerthner.cwn.api.CwnTrack;
+import org.wuerthner.cwn.api.Markup;
 import org.wuerthner.cwn.api.Trias;
 import org.wuerthner.cwn.position.PositionTools;
+import org.wuerthner.cwn.score.ScoreUpdate;
 import org.wuerthner.sport.api.Attribute;
 
 import javax.swing.*;
@@ -216,8 +218,9 @@ public class NoteToolBar {
         updateSelector(tupletButtonGroup, scoreModel.getTupletSelector());
         updateSelector(voiceButtonGroup, scoreModel.getVoiceSelector());
         //
-        toolbar2.addSeparator(new Dimension(20, 40));
 
+        toolbar2.addSeparator(new Dimension(20, 40));
+        toolbar2.add(new JLabel("Note Editor: "));
         //
         JButton noteAttributesBtn = makeButton("toolbar/noteAttributes1", "Note Attributes",12);
         AbstractAction noteAttributesAction = new AbstractAction() {
@@ -234,6 +237,106 @@ public class NoteToolBar {
         noteAttributesBtn.getActionMap().put("Editor", noteAttributesAction);
         toolbar2.add(noteAttributesBtn);
 
+        // MARKUP
+        toolbar2.addSeparator(new Dimension(20, 40));
+        toolbar2.add(new JLabel("Markup: "));
+
+        // FLAGS:   AMBITUS, ATTRIBUTES, PARALLELS, INTERVALS, CROSSINGS, LYRICS, NOTE_ATTRIBUTES, COLOR_VOICES
+        JToggleButton flagBtn1 = makeToggleButton("toolbar/flagAmbitus", "Ambitus", 12);
+        flagBtn1.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.AMBITUS));
+        makeAction(flagBtn1, KeyEvent.VK_A, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.AMBITUS)) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.AMBITUS);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.AMBITUS);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+        });
+        toolbar2.add(flagBtn1);
+
+        JToggleButton flagBtn2 = makeToggleButton("toolbar/flagAttributes", "Track Attributes", 12);
+        flagBtn2.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.ATTRIBUTES));
+        makeAction(flagBtn2, KeyEvent.VK_T, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.ATTRIBUTES)) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.ATTRIBUTES);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.ATTRIBUTES);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+        });
+        toolbar2.add(flagBtn2);
+
+        JToggleButton flagBtn3 = makeToggleButton("toolbar/flagParallels", "Parallels", 12);
+        flagBtn3.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.PARALLELS));
+        makeAction(flagBtn3, KeyEvent.VK_P, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.PARALLELS)) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.PARALLELS);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.PARALLELS);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn3);
+
+        JToggleButton flagBtn4 = makeToggleButton("toolbar/flagIntervals", "Intervals", 12);
+        flagBtn4.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.INTERVALS));
+        makeAction(flagBtn4, KeyEvent.VK_I, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.INTERVALS)) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.INTERVALS);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.INTERVALS);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn4);
+
+        JToggleButton flagBtn5 = makeToggleButton("toolbar/flagCrossings", "Crossings", 12);
+        flagBtn5.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.CROSSINGS));
+        makeAction(flagBtn5, KeyEvent.VK_C, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.CROSSINGS)) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.CROSSINGS);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.CROSSINGS);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn5);
+
+        JToggleButton flagBtn6 = makeToggleButton("toolbar/flagLyrics", "Lyrics", 12);
+        flagBtn6.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.LYRICS));
+        makeAction(flagBtn6, KeyEvent.VK_L, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.LYRICS)) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.LYRICS);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.LYRICS);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+        });
+        toolbar2.add(flagBtn6);
+
+        JToggleButton flagBtn7 = makeToggleButton("toolbar/flagNoteAttributes", "Note Attributes", 12);
+        flagBtn7.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.NOTE_ATTRIBUTES));
+        makeAction(flagBtn7, KeyEvent.VK_N, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.NOTE_ATTRIBUTES)) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.NOTE_ATTRIBUTES);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.NOTE_ATTRIBUTES);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+        });
+        toolbar2.add(flagBtn7);
+
+        JToggleButton flagBtn8 = makeToggleButton("toolbar/flagColors", "Color Voices", 12);
+        flagBtn8.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.COLOR_VOICES));
+        makeAction(flagBtn8, KeyEvent.VK_C, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.COLOR_VOICES)) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.COLOR_VOICES);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.COLOR_VOICES);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+        });
+        toolbar2.add(flagBtn8);
     }
 
     private JButton makeButton(String function, String tooltip, int size) {
@@ -248,6 +351,18 @@ public class NoteToolBar {
         return button;
     }
 
+    private JToggleButton makeToggleButton(String function, String tooltip, int size) {
+        URL url = getClass().getResource("/" + function + ".png");
+        ImageIcon icon = new ImageIcon(url);
+        if (size > 0) {
+            icon = new ImageIcon(icon.getImage().getScaledInstance(size, size, Image.SCALE_SMOOTH));
+        }
+        JToggleButton button = new JToggleButton(icon);
+        button.setToolTipText(tooltip);
+        button.setFocusPainted(false);
+        return button;
+    }
+
     public void setSelection(AmbitusSelection selection) {
         if (selection.hasSingleSelection()) {
             Event event = selection.getSingleSelection();
@@ -255,7 +370,6 @@ public class NoteToolBar {
         } else {
             this.selectedEvent = null;
         }
-
     }
 
     public void clearSelection() {
@@ -269,7 +383,6 @@ public class NoteToolBar {
     private void makeAction(JToggleButton button, int key, int modifier, Runnable runnable) {
         AbstractAction action = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-
                 runnable.run();
             }
         };
