@@ -28,6 +28,8 @@ public class PrintService {
             if (isLinux()) {
                 br = exec("lilypond " + lilypondFile.getCanonicalPath(), "", lilypondFile.getParentFile());
             } else if (isWindows()) {
+                System.out.println("program files: " + WIN_PROGRAMFILES);
+                System.out.println(" lilypond: " + "C:\\" + WIN_PROGRAMFILES + "\\LilyPond\\usr\\bin\\lilypond-windows.exe");
                 br = exec("\"C:\\" + WIN_PROGRAMFILES + "\\LilyPond\\usr\\bin\\lilypond-windows.exe\" -dgui " + lilypondFile.getCanonicalPath(), "", lilypondFile.getParentFile());
             }
             String line;
@@ -37,7 +39,8 @@ public class PrintService {
             if (isLinux()) {
                 Runtime.getRuntime().exec("evince " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null, lilypondFile.getParentFile());
             } else if (isWindows()) {
-                Runtime.getRuntime().exec("C:\\Program Files (x86)\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null,
+                System.out.println(" acrobat:  " + "C:\\" + WIN_PROGRAMFILES + "\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe");
+                Runtime.getRuntime().exec("C:\\" + WIN_PROGRAMFILES + "\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null,
                         lilypondFile.getParentFile());
 
                 Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null, lilypondFile.getParentFile());

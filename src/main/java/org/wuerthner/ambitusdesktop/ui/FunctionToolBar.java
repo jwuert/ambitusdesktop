@@ -3,6 +3,7 @@ package org.wuerthner.ambitusdesktop.ui;
 import org.wuerthner.ambitus.model.*;
 import org.wuerthner.ambitus.model.Event;
 import org.wuerthner.ambitus.service.*;
+import org.wuerthner.ambitus.tool.MidiImportService;
 import org.wuerthner.ambitus.type.NamedRange;
 import org.wuerthner.ambitusdesktop.*;
 import org.wuerthner.ambitusdesktop.service.ExportService;
@@ -112,6 +113,76 @@ public class FunctionToolBar implements PositionUpdater {
         toolMap.put("open", openBtn);
         functionToolbar.add(openBtn);
 
+        // Open Recent
+        JButton openShftBtn = makeButton("toolbar/open_recent", "Open Most Recent File", 24);
+        AbstractAction openShft = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Optional<File> optFile = recentFileList.getMostRecent();
+                if (optFile.isPresent()) {
+                    File selectedFile = optFile.get();
+                    try {
+                        FileInputStream inputStream = new FileInputStream(selectedFile);
+                        XMLReader reader = new XMLReader(scoreModel.factory, Arrangement.TYPE, "root");
+                        Arrangement root = (Arrangement) reader.run(inputStream);
+                        if (root != null) {
+                            scoreModel.setArrangement(root);
+                            scoreModel.setFile(selectedFile);
+                            scoreModel.updateScoreParameter();
+                            scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
+                            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+                            panelUpdater.updatePanel();
+                            updateToolbar();
+                            updatePosition();
+                        }
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+                }
+            }
+        };
+        openShftBtn.addActionListener(openShft);
+        openShftBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), "openShft");
+        openShftBtn.getActionMap().put("openShft", openShft);
+        toolMap.put("openShft", openShftBtn);
+        functionToolbar.add(openShftBtn);
+
+        // Open MIDI
+        JButton openMidiBtn = makeButton("toolbar/importMidi", "Open Midi File", 24);
+        AbstractAction openMidi = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int result = fileChooser.showOpenDialog(content);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    recentFileList.add(selectedFile);
+                    try {
+                        FileInputStream inputStream = new FileInputStream(selectedFile);
+                        // TODO: import midi
+                        MidiImportService midiImportService = new MidiImportService();
+                        Arrangement root = midiImportService.readMidiFile(inputStream, scoreModel.factory);
+                        if (root != null) {
+                            scoreModel.setArrangement(root);
+                            //scoreModel.setFile(selectedFile);
+                            scoreModel.updateScoreParameter();
+                            scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
+                            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+                            panelUpdater.updatePanel();
+                            updateToolbar();
+                            updatePosition();
+                        }
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+                }
+            }
+        };
+        openMidiBtn.addActionListener(openMidi);
+        // openMidiBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK), "openMidi");
+        openMidiBtn.getActionMap().put("openMidi", openMidi);
+        toolMap.put("openMidi", openMidiBtn);
+        functionToolbar.add(openMidiBtn);
+
         // Save
         JButton writeBtn = makeButton("toolbar/write", "Save File",24);
         AbstractAction writeAction = new AbstractAction() {
@@ -198,7 +269,7 @@ public class FunctionToolBar implements PositionUpdater {
             }
         };
         propBtn.addActionListener(propAction);
-        propBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK), "prop");
+        propBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), "prop");
         propBtn.getActionMap().put("prop", propAction);
         toolMap.put("prop", propBtn);
         functionToolbar.add(propBtn);
@@ -559,6 +630,32 @@ public class FunctionToolBar implements PositionUpdater {
         autoShiftBtn.getActionMap().put("autoshift", autoShiftAction);
         toolMap.put("autoshift", autoShiftBtn);
         functionToolbar.add(autoShiftBtn);
+
+        // Velocity
+        JButton velocityBtn = makeButton("toolbar/velocity", "Velocity", 24);
+        AbstractAction velocityAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                OperationDialog od = new OperationDialog("Velocity", content, scoreModel.getSelection().isEmpty());
+                od.add("Velocity", "0");
+                Scope scope = od.show();
+
+                String velocityString = od.getValue();
+                try {
+                    int velocityValue = Integer.valueOf(velocityString);
+                    Velocity.run(scoreModel.getArrangement(), velocityValue, scope);
+                    scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+                    panelUpdater.updatePanel();
+                    updateToolbar();
+                } catch (NumberFormatException nfe) {
+                    JOptionPane.showConfirmDialog(content, "Wrong format for 'Velocity value': " + od.getValue());
+                }
+            }
+        };
+        velocityBtn.addActionListener(velocityAction);
+        velocityBtn.getActionMap().put("velocity", velocityAction);
+        toolMap.put("velocity", velocityBtn);
+        functionToolbar.add(velocityBtn);
 
         // SEPARATOR
         functionToolbar.addSeparator(new Dimension(10, 40));
@@ -1182,6 +1279,8 @@ public class FunctionToolBar implements PositionUpdater {
 
         toolMap.get("newDocument").setEnabled(!dirty && notPlaying);
         toolMap.get("open").setEnabled(!dirty && notPlaying);
+        toolMap.get("openShft").setEnabled(!dirty && notPlaying);
+        // toolMap.get("openShft").setVisible(false);
         toolMap.get("write").setEnabled(dirty);
         toolMap.get("writeAs").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("print").setEnabled(noOfTracks > 0 && notPlaying);

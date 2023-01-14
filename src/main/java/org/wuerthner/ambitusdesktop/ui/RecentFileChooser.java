@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
@@ -49,6 +50,10 @@ public class RecentFileChooser {
             });
         }
 
+        public Optional<File> getMostRecent() {
+            return listModel.getMostRecent();
+        }
+
         public void clearList() {
             listModel.clear();
         }
@@ -86,6 +91,14 @@ public class RecentFileChooser {
                 if (size >= 0) {
                     files.clear();
                     fireIntervalRemoved(this, 0, size);
+                }
+            }
+
+            public Optional<File> getMostRecent() {
+                if (files.isEmpty()) {
+                    return Optional.empty();
+                } else {
+                    return Optional.of(files.get(0));
                 }
             }
 

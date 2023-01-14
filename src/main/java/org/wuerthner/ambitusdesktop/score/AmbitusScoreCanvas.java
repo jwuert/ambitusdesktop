@@ -162,10 +162,16 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         int width = x2-x1;
         int height = y2-y1;
         if (height==0) height = 3;
+        if (alternative) {
+            g.setColor(Color.RED);
+        }
         if (direction==1)
             g.drawArc((int)(x1*zoom), (int)(y1*zoom), (int)(width*zoom), (int) (height*zoom), 0, 180);
         else
             g.drawArc((int)(x1*zoom), (int)(y1*zoom), (int)(width*zoom), (int) (height*zoom), 0, -180);
+        if (alternative) {
+            g.setColor(Color.BLACK);
+        }
     }
 
     private void init() {
