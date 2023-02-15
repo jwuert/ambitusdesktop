@@ -15,9 +15,18 @@ import java.util.List;
 
 public class BarConfig {
     public BarConfig(ScoreModel scoreModel, ScorePanel content, Location location) {
+        int currentKey = scoreModel.getKey(location.staffIndex, location.position);
+        int currentGenus = scoreModel.getGenus(location.staffIndex, location.position);
+        if (currentGenus == 1) { // MINOR
+            currentKey = (currentKey > 4 ? currentKey -9 : currentKey +3);
+        }
         List<String> keys = new ArrayList<>();
         keys.addAll(Arrays.asList(Arrangement.KEYS));
-        keys.add(Arrangement.KEYS[scoreModel.getKey(location.staffIndex, location.position)+7]);
+        keys.add(Arrangement.KEYS[currentKey+7]);
+        List<String> genus = new ArrayList<>();
+        genus.addAll(Arrays.asList(Arrangement.GENUS));
+        genus.add(Arrangement.GENUS[currentGenus]);
+
         List<String> clefs = new ArrayList<>();
         clefs.addAll(Arrays.asList(Arrangement.CLEFS));
         clefs.add(Arrangement.CLEFS[scoreModel.getClef(location.staffIndex, location.position)]);
@@ -42,8 +51,9 @@ public class BarConfig {
             List<String> instruments = new ArrayList<>();
             instruments.addAll(Arrays.asList(MidiTrack.MIDI_INSTRUMENTS));
             instruments.add(MidiTrack.MIDI_INSTRUMENTS[scoreModel.getInstrument(location.staffIndex)]);
+            boolean piano = scoreModel.getPiano(location.staffIndex);
             ParameterDialog pd = new ParameterDialog(new String[]{"Bar Configuration"},
-                    new String[]{"Name", "Mute", "Volume", "Channel", "Instrument", "Metric", "Tempo", "Key", "Clef"},
+                    new String[]{"Name", "Mute", "Volume", "Channel", "Instrument", "Metric", "Tempo", "Key", "Genus", "Clef", "Piano"},
                     new Object[]{
                             name,
                             mute,
@@ -53,8 +63,9 @@ public class BarConfig {
                             metric,
                             tempo,
                             keys.toArray(new String[]{}),
+                            genus.toArray(new String[]{}),
                             clefs.toArray(new String[]{}),
-                            ParameterDialog.makeCombo(CwnBarEvent.TYPES, 0)},
+                            piano},
                     content);
             String[] parameters = pd.getParameters();
             if (parameters != null) {
@@ -66,20 +77,26 @@ public class BarConfig {
                 String newMetric = parameters[5];
                 Integer newTempo = Integer.valueOf(parameters[6]);
                 int keySelection = Arrays.asList(Arrangement.KEYS).indexOf(parameters[7]);
-                int clefSelection = Arrays.asList(Arrangement.CLEFS).indexOf(parameters[8]);
+                int genusSelection = Arrays.asList(Arrangement.GENUS).indexOf(parameters[8]);
+                int clefSelection = Arrays.asList(Arrangement.CLEFS).indexOf(parameters[9]);
+                boolean newPiano = (Boolean.valueOf(parameters[10]));
                 String trackId = ((MidiTrack) scoreModel.getTrackList().get(location.staffIndex)).getId();
-                scoreModel.setTrackProperties(trackId, newMute, newVolume, newName, newMetric, keySelection, clefSelection, newTempo, instrumentSelection, channelSelection);
+                if (genusSelection == 1) { // MINOR
+                    keySelection = (keySelection < 3 ? keySelection +9 : keySelection -3);
+                }
+                scoreModel.setTrackProperties(trackId, newMute, newVolume, newName, newMetric, keySelection, genusSelection, clefSelection, newTempo, instrumentSelection, channelSelection, newPiano);
             }
         } else {
             //
             // Bar Configuration
             //
             ParameterDialog pd = new ParameterDialog(new String[]{"Bar Configuration"},
-                    new String[]{"Metric", "Tempo", "Key", "Clef", "Bar (end)"},
+                    new String[]{"Metric", "Tempo", "Key", "Genus", "Clef", "Bar (end)"},
                     new Object[]{
                             metric,
                             tempo,
                             keys.toArray(new String[]{}),
+                            genus.toArray(new String[]{}),
                             clefs.toArray(new String[]{}),
                             ParameterDialog.makeCombo(CwnBarEvent.TYPES, 0)},
                     content);
@@ -88,10 +105,14 @@ public class BarConfig {
                 String newMetric = parameters[0];
                 Integer newTempo = Integer.valueOf(parameters[1]);
                 int keySelection = Arrays.asList(Arrangement.KEYS).indexOf(parameters[2]);
-                int clefSelection = Arrays.asList(Arrangement.CLEFS).indexOf(parameters[3]);
-                int barSelection = ParameterDialog.get(CwnBarEvent.TYPES, parameters[4]);
+                int genusSelection = Arrays.asList(Arrangement.GENUS).indexOf(parameters[3]);
+                int clefSelection = Arrays.asList(Arrangement.CLEFS).indexOf(parameters[4]);
+                int barSelection = ParameterDialog.get(CwnBarEvent.TYPES, parameters[5]);
                 String trackId = ((MidiTrack) scoreModel.getTrackList().get(location.staffIndex)).getId();
-                scoreModel.setBarProperties(trackId, location.position, newMetric, keySelection, clefSelection, barSelection, newTempo);
+                if (genusSelection == 1) { // MINOR
+                    keySelection = (keySelection < 3 ? keySelection +9 : keySelection -3);
+                }
+                scoreModel.setBarProperties(trackId, location.position, newMetric, keySelection, genusSelection, clefSelection, barSelection, newTempo);
             }
         }
     }

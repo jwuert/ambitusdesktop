@@ -341,6 +341,14 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
             imageMap.put("m-"+symbolName + "-h", getImage("symbols/ssym" + symbolName + "-m-h"));
         }
 
+        // Piano Staff
+        imageMap.put("pianostaff1", getImage("pianostaff1"));
+        imageMap.put("pianostaff2", getImage("pianostaff2"));
+        imageMap.put("m-pianostaff1", getImage("m-pianostaff1"));
+        imageMap.put("m-pianostaff2", getImage("m-pianostaff2"));
+        imageMap.put("d-pianostaff1", getImage("d-pianostaff1"));
+        imageMap.put("d-pianostaff2", getImage("d-pianostaff2"));
+
         //
         // CORRECTIONS
         //
@@ -397,11 +405,12 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         fontMap.put("barNumber", new Font("Arial", Font.ITALIC, (int)(9*zoom)));
         fontMap.put("timeSignature", new Font("Arial", Font.BOLD, (int)(13*zoom)));
         fontMap.put("text", new Font("Arial", Font.PLAIN, (int)(9*zoom)));
-        fontMap.put("nole", new Font("Arial", Font.PLAIN, (int)(7*zoom)));
+        fontMap.put("nole", new Font("Arial", Font.ITALIC, (int)(7*zoom)));
         fontMap.put("track", new Font("Arial", Font.PLAIN, (int)(18*zoom)));
         fontMap.put("trackMuted", new Font("Arial", Font.PLAIN, (int)(18*zoom)));
         fontMap.put("lyrics", new Font("Arial", Font.PLAIN, (int)(9*zoom)));
-        fontMap.put("markup", new Font("Arial", Font.PLAIN, (int)(9*zoom)));
+        fontMap.put("markup", new Font("Arial", Font.ITALIC, (int)(9*zoom)));
+        fontMap.put("markupBold", new Font("Arial", Font.ITALIC | Font.BOLD, (int)(9*zoom)));
     }
 
     private Image getImage(String name) {

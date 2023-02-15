@@ -92,6 +92,7 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
         } else {
             noteToolBar.clearSelection();
         }
+        noteToolBar.updateFlags();
     }
 
     public void updateSymbolBar() {

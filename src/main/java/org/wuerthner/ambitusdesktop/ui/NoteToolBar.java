@@ -37,6 +37,17 @@ public class NoteToolBar {
     private JLabel voiceText;
     private Event selectedEvent = null;
 
+    private JToggleButton flagBtn1;
+    private JToggleButton flagBtn2;
+    private JToggleButton flagBtn3;
+    private JToggleButton flagBtn4;
+    private JToggleButton flagBtn5;
+    private JToggleButton flagBtn6;
+    private JToggleButton flagBtn7;
+    private JToggleButton flagBtn8;
+    private JToggleButton flagBtn9;
+    private JToggleButton flagBtn10;
+
     public NoteToolBar(ScoreModel scoreModel, ScoreUpdater scoreUpdater, ToolbarUpdater toolbarUpdater, JPanel content) {
         this.scoreModel = scoreModel;
         this.scoreUpdater = scoreUpdater;
@@ -174,11 +185,11 @@ public class NoteToolBar {
 //            updateSelector(tupletButtonGroup, NoteSelector.T4);
 //        });
 
-        JToggleButton tupletBtn5 = makeGroupButton("images/buttons/nbTuplet5", tupletButtonGroup, NoteSelector.T5, toolbar2);
-        makeAction(tupletBtn5, KeyEvent.VK_5, KeyEvent.ALT_DOWN_MASK, () -> {
-            scoreModel.setTupletSelector(NoteSelector.T5);
-            updateSelector(tupletButtonGroup, NoteSelector.T5);
-        });
+//        JToggleButton tupletBtn5 = makeGroupButton("images/buttons/nbTuplet5", tupletButtonGroup, NoteSelector.T5, toolbar2);
+//        makeAction(tupletBtn5, KeyEvent.VK_5, KeyEvent.ALT_DOWN_MASK, () -> {
+//            scoreModel.setTupletSelector(NoteSelector.T5);
+//            updateSelector(tupletButtonGroup, NoteSelector.T5);
+//        });
 
 //        JToggleButton tupletBtn6 = makeGroupButton("images/buttons/nbTuplet6", tupletButtonGroup, NoteSelector.T6, toolbar2);
 //        makeAction(tupletBtn6, KeyEvent.VK_6, KeyEvent.ALT_DOWN_MASK, () -> {
@@ -207,7 +218,7 @@ public class NoteToolBar {
         });
 
         JToggleButton voiceBtn2 = makeGroupButton("images/buttons/v2", voiceButtonGroup, NoteSelector.V2, toolbar2);
-        makeAction(voiceBtn2, KeyEvent.VK_1, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+        makeAction(voiceBtn2, KeyEvent.VK_2, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
             scoreModel.setVoiceSelector(NoteSelector.V2);
             updateSelector(voiceButtonGroup, NoteSelector.V2);
         });
@@ -241,102 +252,151 @@ public class NoteToolBar {
         toolbar2.addSeparator(new Dimension(20, 40));
         toolbar2.add(new JLabel("Markup: "));
 
-        // FLAGS:   AMBITUS, ATTRIBUTES, PARALLELS, INTERVALS, CROSSINGS, LYRICS, NOTE_ATTRIBUTES, COLOR_VOICES
-        JToggleButton flagBtn1 = makeToggleButton("toolbar/flagAmbitus", "Ambitus", 12);
-        flagBtn1.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.AMBITUS));
+        // FLAGS:   AMBITUS, ATTRIBUTES, PARALLELS, INTERVALS, CROSSINGS, LYRICS, NOTE_ATTRIBUTES, COLOR_VOICES, HARMONY, RIEMANN
+        flagBtn1 = makeToggleButton("toolbar/flagAmbitus", "Ambitus", 12);
         makeAction(flagBtn1, KeyEvent.VK_A, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
-            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.AMBITUS)) {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.AMBITUS);
+            if (!flagBtn1.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.AMBITUS);
             } else {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.AMBITUS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.AMBITUS);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
         });
         toolbar2.add(flagBtn1);
 
-        JToggleButton flagBtn2 = makeToggleButton("toolbar/flagAttributes", "Track Attributes", 12);
-        flagBtn2.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.ATTRIBUTES));
+        flagBtn2 = makeToggleButton("toolbar/flagAttributes", "Track Attributes", 12);
         makeAction(flagBtn2, KeyEvent.VK_T, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
-            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.ATTRIBUTES)) {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.ATTRIBUTES);
+            if (!flagBtn2.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.ATTRIBUTES);
             } else {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.ATTRIBUTES);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.ATTRIBUTES);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
         });
         toolbar2.add(flagBtn2);
 
-        JToggleButton flagBtn3 = makeToggleButton("toolbar/flagParallels", "Parallels", 12);
-        flagBtn3.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.PARALLELS));
-        makeAction(flagBtn3, KeyEvent.VK_P, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
-            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.PARALLELS)) {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.PARALLELS);
-            } else {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.PARALLELS);
-            }
-            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-        });
-        toolbar2.add(flagBtn3);
-
-        JToggleButton flagBtn4 = makeToggleButton("toolbar/flagIntervals", "Intervals", 12);
-        flagBtn4.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.INTERVALS));
-        makeAction(flagBtn4, KeyEvent.VK_I, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
-            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.INTERVALS)) {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.INTERVALS);
-            } else {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.INTERVALS);
-            }
-            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-        });
-        toolbar2.add(flagBtn4);
-
-        JToggleButton flagBtn5 = makeToggleButton("toolbar/flagCrossings", "Crossings", 12);
-        flagBtn5.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.CROSSINGS));
-        makeAction(flagBtn5, KeyEvent.VK_C, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
-            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.CROSSINGS)) {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.CROSSINGS);
-            } else {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.CROSSINGS);
-            }
-            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-        });
-        toolbar2.add(flagBtn5);
-
-        JToggleButton flagBtn6 = makeToggleButton("toolbar/flagLyrics", "Lyrics", 12);
-        flagBtn6.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.LYRICS));
-        makeAction(flagBtn6, KeyEvent.VK_L, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
-            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.LYRICS)) {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.LYRICS);
-            } else {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.LYRICS);
-            }
-            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
-        });
-        toolbar2.add(flagBtn6);
-
-        JToggleButton flagBtn7 = makeToggleButton("toolbar/flagNoteAttributes", "Note Attributes", 12);
-        flagBtn7.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.NOTE_ATTRIBUTES));
+        flagBtn7 = makeToggleButton("toolbar/flagNoteAttributes", "Note Attributes", 12);
         makeAction(flagBtn7, KeyEvent.VK_N, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
-            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.NOTE_ATTRIBUTES)) {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.NOTE_ATTRIBUTES);
+            if (!flagBtn7.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.NOTE_ATTRIBUTES);
             } else {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.NOTE_ATTRIBUTES);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.NOTE_ATTRIBUTES);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
         });
         toolbar2.add(flagBtn7);
 
-        JToggleButton flagBtn8 = makeToggleButton("toolbar/flagColors", "Color Voices", 12);
-        flagBtn8.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.COLOR_VOICES));
+        flagBtn8 = makeToggleButton("toolbar/flagColors", "Color Voices", 12);
         makeAction(flagBtn8, KeyEvent.VK_C, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
-            if (scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.COLOR_VOICES)) {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.COLOR_VOICES);
+            if (!flagBtn8.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.COLOR_VOICES);
             } else {
-                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.COLOR_VOICES);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.COLOR_VOICES);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
         });
         toolbar2.add(flagBtn8);
+
+        toolbar2.addSeparator(new Dimension(10, 40));
+
+        // flagBtn: 3 (Par), 4 (Int), 5 (Cros), 6 (Lyr), 9 (Harmony), 10 (Riemann) belong to one radio group!
+        flagBtn3 = makeToggleButton("toolbar/flagParallels", "Parallels", 12);
+        makeAction(flagBtn3, KeyEvent.VK_P, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (!flagBtn3.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.PARALLELS);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.PARALLELS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.INTERVALS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn3);
+
+        flagBtn4 = makeToggleButton("toolbar/flagIntervals", "Intervals", 12);
+        makeAction(flagBtn4, KeyEvent.VK_I, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (!flagBtn4.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.INTERVALS);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.INTERVALS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.PARALLELS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn4);
+
+        flagBtn5 = makeToggleButton("toolbar/flagCrossings", "Crossings", 12);
+        makeAction(flagBtn5, KeyEvent.VK_X, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (!flagBtn5.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.CROSSINGS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.PARALLELS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.INTERVALS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn5);
+
+        flagBtn6 = makeToggleButton("toolbar/flagLyrics", "Lyrics", 12);
+        makeAction(flagBtn6, KeyEvent.VK_L, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (!flagBtn6.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.LYRICS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.PARALLELS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.INTERVALS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn6);
+
+        flagBtn9 = makeToggleButton("toolbar/flagHarmony", "Harmony", 12);
+        makeAction(flagBtn9, KeyEvent.VK_H, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (!flagBtn9.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.HARMONY);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.PARALLELS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.INTERVALS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn9);
+
+        flagBtn10 = makeToggleButton("toolbar/flagRiemann", "Riemann", 12);
+        makeAction(flagBtn10, KeyEvent.VK_R, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (!flagBtn10.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.RIEMANN);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.PARALLELS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.INTERVALS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn10);
+
+        updateFlags();
     }
 
     private JButton makeButton(String function, String tooltip, int size) {
@@ -425,5 +485,18 @@ public class NoteToolBar {
                 button.setSelected(true);
             }
         }
+    }
+
+    public void updateFlags() {
+        flagBtn1.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.AMBITUS));
+        flagBtn2.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.ATTRIBUTES));
+        flagBtn3.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.PARALLELS));
+        flagBtn4.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.INTERVALS));
+        flagBtn5.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.CROSSINGS));
+        flagBtn6.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.LYRICS));
+        flagBtn7.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.NOTE_ATTRIBUTES));
+        flagBtn8.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.COLOR_VOICES));
+        flagBtn9.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.HARMONY));
+        flagBtn10.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.RIEMANN));
     }
 }

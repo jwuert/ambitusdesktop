@@ -27,8 +27,8 @@ import java.util.Optional;
 
 public class ScoreModel {
     public static final String FILE_EXTENSION = "amb";
-    private static final List<Markup> markup = Arrays.asList(Markup.PARALLELS, Markup.LYRICS, Markup.NOTE_ATTRIBUTES);
-    private static final boolean debug = false;
+    private static final List<Markup.Type> markup = Arrays.asList(Markup.Type.LYRICS, Markup.Type.NOTE_ATTRIBUTES);
+    private static final boolean debug = true;
     private static boolean debugScore = false;
 
     private NoteSelector noteSelector = NoteSelector.N8;
@@ -91,7 +91,7 @@ public class ScoreModel {
                 arrangement.getStretchFactor(),
                 Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
                 durationTypeList,
-                new ArrayList<>(markup), 0);
+                new ArrayList<Markup.Type>(markup), 0);
         return scoreParameter;
     }
 
@@ -337,6 +337,12 @@ public class ScoreModel {
         }
     }
 
+    public void addOrRemoveInfoEvent(long newPosition, String newChord, String newMode) {
+        if (arrangement != null) {
+            arrangement.addOrRemoveInfoEvent(newPosition, newChord, newMode, factory);
+        }
+    }
+
     public void unsetMouseFrame() {
         arrangement.getSelection().unsetMouseFrame();
     }
@@ -389,12 +395,12 @@ public class ScoreModel {
 //        }
     }
 
-    public void setTrackProperties(String trackId, boolean mute, int volume, String name, String metric, int key, int clef, int tempo, int instrument, int channel) {
-        arrangement.setTrackProperties(trackId, mute, volume, name, metric, key, clef, tempo, instrument, channel);
+    public void setTrackProperties(String trackId, boolean mute, int volume, String name, String metric, int key, int genus, int clef, int tempo, int instrument, int channel, boolean newPiano) {
+        arrangement.setTrackProperties(trackId, mute, volume, name, metric, key, genus, clef, tempo, instrument, channel, newPiano);
     }
 
-    public void setBarProperties(String trackId, long barPosition, String metric, int key, int clef, int bar, int tempo) {
-        arrangement.setBarProperties(trackId, barPosition, metric, key, clef, CwnBarEvent.TYPES[bar], tempo, factory);
+    public void setBarProperties(String trackId, long barPosition, String metric, int key, int genus, int clef, int bar, int tempo) {
+        arrangement.setBarProperties(trackId, barPosition, metric, key, genus, clef, CwnBarEvent.TYPES[bar], tempo, factory);
     }
 
     public String getMetric(String trackId, long barPosition) {
@@ -411,6 +417,11 @@ public class ScoreModel {
 
     public int getKey(int trackIndex, long barPosition) {
         return arrangement.getTrackBarKey(trackIndex, barPosition);
+    }
+
+    public int getGenus(int trackIndex, long barPosition) {
+        System.out.println("GENUS: " + arrangement.getTrackBarKeyGenus(trackIndex, barPosition));
+        return arrangement.getTrackBarKeyGenus(trackIndex, barPosition);
     }
 
     public int getBarIndex(int trackIndex, long barPosition) {
@@ -435,6 +446,10 @@ public class ScoreModel {
 
     public boolean getMute(int trackIndex) {
         return arrangement.getTrackList().get(trackIndex).getMute();
+    }
+
+    public boolean getPiano(int trackIndex) {
+        return arrangement.getTrackList().get(trackIndex).getPiano();
     }
 
     public int getVolume(int trackIndex) {

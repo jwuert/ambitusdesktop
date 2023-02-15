@@ -329,6 +329,7 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         }
         dragLocation = Optional.empty();
         scoreModel.getSelection().unsetMouseFrame();
+        toolbarUpdater.updateToolbar();
         updateScore(new ScoreUpdate(ScoreUpdate.Type.REDRAW));
     }
 

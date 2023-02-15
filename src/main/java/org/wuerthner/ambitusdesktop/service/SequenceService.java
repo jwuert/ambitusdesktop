@@ -25,33 +25,35 @@ public class SequenceService {
             Track tempoTrack = sequence.createTrack();
             List<CwnTrack> trackList = arrangement.getTrackList();
             for (int trackNo = 0; trackNo < trackList.size(); trackNo++) {
-                MidiTrack midiTrack = (MidiTrack) trackList.get(trackNo);
-                double volumeWeight =  (hasExposedTracks ? trackNo == exposedTrack ? exposeFactor : 1.0 / exposeFactor : 1.0);
-                double volume = midiTrack.getVolume()*0.1;
-                int program = midiTrack.getInstrument();
-                int channel = midiTrack.getChannel();
-                boolean mute = midiTrack.getMute();
-                if (!mute) {
-                    Track track = sequence.createTrack();
-                    track.add(createInstrumentEvent(program, channel));
-                    for (Event event : midiTrack.getList(Event.class)) {
-                        long end = event.getPosition() + event.getDuration() - 1;
-                        if (endPosition == 0 || end <= endPosition) {
-                            if (event instanceof TempoEvent) {
-                                TempoEvent tempoEvent = TempoEvent.class.cast(event);
-                                tempoTrack.add(createTempoEvent(tempoEvent.getPosition(), (int) (tempoEvent.getTempo() * tempoFactor)));
-                            } else if (event instanceof NoteEvent) {
-                                NoteEvent noteEvent = NoteEvent.class.cast(event);
-                                long start = noteEvent.getPosition();
-                                // long end = noteEvent.getEnd() - 1;
-                                if (playAll || (start >= startPosition && end <= endPosition)) {
-                                    int pitch = noteEvent.getPitch();
-                                    int velocity = (int) (noteEvent.getVelocity() * volumeWeight * volume);
-                                    if (velocity > 127) {
-                                        velocity = 127;
+                if (trackList.get(trackNo) instanceof MidiTrack) {
+                    MidiTrack midiTrack = (MidiTrack) trackList.get(trackNo);
+                    double volumeWeight = (hasExposedTracks ? trackNo == exposedTrack ? exposeFactor : 1.0 / exposeFactor : 1.0);
+                    double volume = midiTrack.getVolume() * 0.1;
+                    int program = midiTrack.getInstrument();
+                    int channel = midiTrack.getChannel();
+                    boolean mute = midiTrack.getMute();
+                    if (!mute) {
+                        Track track = sequence.createTrack();
+                        track.add(createInstrumentEvent(program, channel));
+                        for (Event event : midiTrack.getList(Event.class)) {
+                            long end = event.getPosition() + event.getDuration() - 1;
+                            if (endPosition == 0 || end <= endPosition) {
+                                if (event instanceof TempoEvent) {
+                                    TempoEvent tempoEvent = TempoEvent.class.cast(event);
+                                    tempoTrack.add(createTempoEvent(tempoEvent.getPosition(), (int) (tempoEvent.getTempo() * tempoFactor)));
+                                } else if (event instanceof NoteEvent) {
+                                    NoteEvent noteEvent = NoteEvent.class.cast(event);
+                                    long start = noteEvent.getPosition();
+                                    // long end = noteEvent.getEnd() - 1;
+                                    if (playAll || (start >= startPosition && end <= endPosition)) {
+                                        int pitch = noteEvent.getPitch();
+                                        int velocity = (int) (noteEvent.getVelocity() * volumeWeight * volume);
+                                        if (velocity > 127) {
+                                            velocity = 127;
+                                        }
+                                        track.add(createNoteOnEvent(pitch, start, velocity, channel));
+                                        track.add(createNoteOffEvent(pitch, end, channel));
                                     }
-                                    track.add(createNoteOnEvent(pitch, start, velocity, channel));
-                                    track.add(createNoteOffEvent(pitch, end, channel));
                                 }
                             }
                         }
