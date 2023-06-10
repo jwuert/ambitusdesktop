@@ -28,7 +28,7 @@ import java.util.Optional;
 public class ScoreModel {
     public static final String FILE_EXTENSION = "amb";
     private static final List<Markup.Type> markup = Arrays.asList(Markup.Type.LYRICS, Markup.Type.NOTE_ATTRIBUTES);
-    private static final boolean debug = true;
+    private static final boolean debug = false;
     private static boolean debugScore = false;
 
     private NoteSelector noteSelector = NoteSelector.N8;
@@ -72,7 +72,7 @@ public class ScoreModel {
         setTupletSelector(NoteSelector.T1);
         setVoiceSelector(NoteSelector.V1);
         this.width = width;
-        scoreLayout = new AmbitusScoreLayout((int) (width * 1.0 / getZoom()), getPPQ(), false);
+        scoreLayout = new AmbitusScoreLayout((int) (width * 1.0 / getZoom()), getPPQ(), getScoreParameter().markup.contains(Markup.Type.VELOCITY));
         ScoreParameter scoreParameter = createScoreParameter(arrangement);
         scoreBuilder = new ScoreBuilder(arrangement, scoreParameter, scoreLayout, numberOfSystems);
         updateScoreParameter();
@@ -395,8 +395,8 @@ public class ScoreModel {
 //        }
     }
 
-    public void setTrackProperties(String trackId, boolean mute, int volume, String name, String metric, int key, int genus, int clef, int tempo, int instrument, int channel, boolean newPiano) {
-        arrangement.setTrackProperties(trackId, mute, volume, name, metric, key, genus, clef, tempo, instrument, channel, newPiano);
+    public void setTrackProperties(String trackId, boolean mute, int volume, String name, String metric, int key, int genus, int clef, int bar, int tempo, int instrument, int channel, boolean newPiano) {
+        arrangement.setTrackProperties(trackId, mute, volume, name, metric, key, genus, clef, CwnBarEvent.TYPES[bar], tempo, instrument, channel, newPiano, factory);
     }
 
     public void setBarProperties(String trackId, long barPosition, String metric, int key, int genus, int clef, int bar, int tempo) {
@@ -420,12 +420,12 @@ public class ScoreModel {
     }
 
     public int getGenus(int trackIndex, long barPosition) {
-        System.out.println("GENUS: " + arrangement.getTrackBarKeyGenus(trackIndex, barPosition));
         return arrangement.getTrackBarKeyGenus(trackIndex, barPosition);
     }
 
     public int getBarIndex(int trackIndex, long barPosition) {
-        return arrangement.getTrackBarBar(trackIndex, barPosition);
+        Optional<Integer> trackBarEvent = arrangement.getTrackBarEvent(trackIndex, barPosition);
+        return (trackBarEvent.isPresent() ? trackBarEvent.get() : 0);
     }
 
     public int getClef(String trackId, long barPosition) {

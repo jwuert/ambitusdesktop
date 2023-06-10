@@ -33,6 +33,7 @@ public class BarConfig {
         String metric = scoreModel.getMetric(location.staffIndex, location.position);
         String tempo = "" + scoreModel.getTempo(0, location.position);
         int bar = scoreModel.getBarIndex(location.staffIndex, location.position);
+
         if (location.position==0) {
             //
             // Track Configuration
@@ -53,7 +54,7 @@ public class BarConfig {
             instruments.add(MidiTrack.MIDI_INSTRUMENTS[scoreModel.getInstrument(location.staffIndex)]);
             boolean piano = scoreModel.getPiano(location.staffIndex);
             ParameterDialog pd = new ParameterDialog(new String[]{"Bar Configuration"},
-                    new String[]{"Name", "Mute", "Volume", "Channel", "Instrument", "Metric", "Tempo", "Key", "Genus", "Clef", "Piano"},
+                    new String[]{"Name", "Mute", "Volume", "Channel", "Instrument", "Metric", "Tempo", "Key", "Genus", "Clef", "Bar", "Piano"},
                     new Object[]{
                             name,
                             mute,
@@ -65,6 +66,7 @@ public class BarConfig {
                             keys.toArray(new String[]{}),
                             genus.toArray(new String[]{}),
                             clefs.toArray(new String[]{}),
+                            ParameterDialog.makeCombo(CwnBarEvent.TYPES, bar),
                             piano},
                     content);
             String[] parameters = pd.getParameters();
@@ -79,26 +81,27 @@ public class BarConfig {
                 int keySelection = Arrays.asList(Arrangement.KEYS).indexOf(parameters[7]);
                 int genusSelection = Arrays.asList(Arrangement.GENUS).indexOf(parameters[8]);
                 int clefSelection = Arrays.asList(Arrangement.CLEFS).indexOf(parameters[9]);
-                boolean newPiano = (Boolean.valueOf(parameters[10]));
+                int barSelection = ParameterDialog.get(CwnBarEvent.TYPES, parameters[10]);
+                boolean newPiano = (Boolean.valueOf(parameters[11]));
                 String trackId = ((MidiTrack) scoreModel.getTrackList().get(location.staffIndex)).getId();
                 if (genusSelection == 1) { // MINOR
                     keySelection = (keySelection < 3 ? keySelection +9 : keySelection -3);
                 }
-                scoreModel.setTrackProperties(trackId, newMute, newVolume, newName, newMetric, keySelection, genusSelection, clefSelection, newTempo, instrumentSelection, channelSelection, newPiano);
+                scoreModel.setTrackProperties(trackId, newMute, newVolume, newName, newMetric, keySelection, genusSelection, clefSelection, barSelection, newTempo, instrumentSelection, channelSelection, newPiano);
             }
         } else {
             //
             // Bar Configuration
             //
             ParameterDialog pd = new ParameterDialog(new String[]{"Bar Configuration"},
-                    new String[]{"Metric", "Tempo", "Key", "Genus", "Clef", "Bar (end)"},
+                    new String[]{"Metric", "Tempo", "Key", "Genus", "Clef", "Bar"},
                     new Object[]{
                             metric,
                             tempo,
                             keys.toArray(new String[]{}),
                             genus.toArray(new String[]{}),
                             clefs.toArray(new String[]{}),
-                            ParameterDialog.makeCombo(CwnBarEvent.TYPES, 0)},
+                            ParameterDialog.makeCombo(CwnBarEvent.TYPES, bar)},
                     content);
             String[] parameters = pd.getParameters();
             if (parameters != null) {

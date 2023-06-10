@@ -44,7 +44,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
     }
 
     @Override
-    public void drawString(String text, String fontName, int x, int y, String align) {
+    public void drawString(String text, String fontName, int x, int y, String align, boolean alternative) {
         int offset = 0;
         if (align.equals("right")) {
             FontMetrics fm = g.getFontMetrics(fontMap.get(fontName));
@@ -59,10 +59,12 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         }
         if (fontName.endsWith("Muted")) {
             g.setColor(Color.LIGHT_GRAY);
+        } else if (alternative) {
+            g.setColor(Color.RED);
         }
         g.setFont(fontMap.get(fontName));
         g.drawString(text, (int)(offset + (x+1)*zoom), (int)((y-2)*zoom));
-        if (fontName.endsWith("Muted")) {
+        if (fontName.endsWith("Muted") || alternative) {
             g.setColor(Color.BLACK);
         }
     }
@@ -87,7 +89,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         y = (int) (y * zoom);
         // g.drawLine(x,y,x,y);
         g.setColor(Color.BLACK);
-        g.fillOval(x, y, (int)zoom+3,(int)zoom+3);
+        g.fillOval(x, y, (int)(zoom*3),(int)(zoom*3));
     }
 
     @Override
@@ -127,6 +129,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
 
     @Override
     public void drawLine(int x1, int y1, int x2, int y2, boolean alternative) {
+        g.setStroke(new BasicStroke((int)(zoom*1.4)));
         if (alternative) {
             g.setColor(Color.RED);
             g.drawLine((int)(x1*zoom), (int)(y1*zoom), (int)(x2*zoom), (int)(y2*zoom));
@@ -134,6 +137,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         } else {
             g.drawLine((int) (x1 * zoom), (int) (y1 * zoom), (int) (x2 * zoom), (int) (y2 * zoom));
         }
+        g.setStroke(stroke);
     }
 
     @Override

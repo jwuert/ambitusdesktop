@@ -649,10 +649,12 @@ public class FunctionToolBar implements PositionUpdater {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     Scope scope = new OperationDialog("Clean Up", content, scoreModel.getSelection().isEmpty()).show();
-                    CleanUp.run(scoreModel.getArrangement(), scope);
-                    scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-                    panelUpdater.updatePanel();
-                    updateToolbar();
+                    if (scope != null) {
+                        CleanUp.run(scoreModel.getArrangement(), scope);
+                        scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+                        panelUpdater.updatePanel();
+                        updateToolbar();
+                    }
                 }
             };
             cleanupBtn.addActionListener(cleanupAction);
@@ -667,10 +669,12 @@ public class FunctionToolBar implements PositionUpdater {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Scope scope = new OperationDialog("Auto Shift", content, scoreModel.getSelection().isEmpty()).show();
-                AutoShift.run(scoreModel.getArrangement(), scope);
-                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-                panelUpdater.updatePanel();
-                updateToolbar();
+                if (scope != null) {
+                    AutoShift.run(scoreModel.getArrangement(), scope);
+                    scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+                    panelUpdater.updatePanel();
+                    updateToolbar();
+                }
             }
         };
         autoShiftBtn.addActionListener(autoShiftAction);
@@ -684,18 +688,23 @@ public class FunctionToolBar implements PositionUpdater {
             @Override
             public void actionPerformed(ActionEvent e) {
                 OperationDialog od = new OperationDialog("Velocity", content, scoreModel.getSelection().isEmpty());
-                od.add("Velocity", "0");
+                od.add("Velocity ('value' or 'start - end')", "0");
                 Scope scope = od.show();
-
-                String velocityString = od.getValue();
-                try {
-                    int velocityValue = Integer.valueOf(velocityString);
-                    Velocity.run(scoreModel.getArrangement(), velocityValue, scope);
-                    scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-                    panelUpdater.updatePanel();
-                    updateToolbar();
-                } catch (NumberFormatException nfe) {
-                    JOptionPane.showConfirmDialog(content, "Wrong format for 'Velocity value': " + od.getValue());
+                if (scope != null) {
+                    String velocityString = od.getValue();
+                    try {
+                        String[] range = velocityString.split("-");
+                        if (range.length > 0) {
+                            int velocityStart = Integer.valueOf(range[0].trim());
+                            int velocityEnd = range.length > 1 ? Integer.valueOf(range[1].trim()) : velocityStart;
+                            Velocity.run(scoreModel.getArrangement(), velocityStart, velocityEnd, scope);
+                            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+                            panelUpdater.updatePanel();
+                            updateToolbar();
+                        }
+                    } catch (NumberFormatException nfe) {
+                        JOptionPane.showConfirmDialog(content, "Wrong format for 'Velocity value': " + od.getValue());
+                    }
                 }
             }
         };

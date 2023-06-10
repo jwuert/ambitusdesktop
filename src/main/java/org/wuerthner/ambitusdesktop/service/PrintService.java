@@ -70,7 +70,7 @@ public class PrintService {
             int stretchFactor = arrangement.getStretchFactor();
             int flags = arrangement.getFlags();
             List<DurationType> typeList = arrangement.getDurations();
-            long endPosition = arrangement.findLastPosition();
+            long endPosition = arrangement.findLastPositionBarStart();
             // ScoreParameter scoreParameter = new ScoreParameter(startDisplayPosition, endDisplayPosition, ppq, resolutionInTicks, groupLevel, stretchFactor, Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS);
             ScoreParameter scoreParameter = new ScoreParameter(ppq, resolutionInTicks, groupLevel, stretchFactor, flags,
                     typeList, new ArrayList<>(), 0);

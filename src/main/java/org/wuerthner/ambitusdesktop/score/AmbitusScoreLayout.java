@@ -79,6 +79,7 @@ public class AmbitusScoreLayout implements ScoreLayout {
         this.ppt = 0.004 * 960.0 / ppq;
     }
 
+    @Override
     public void setShowVelocity(boolean showVelocity) {
         this.showVelocity = showVelocity;
     }

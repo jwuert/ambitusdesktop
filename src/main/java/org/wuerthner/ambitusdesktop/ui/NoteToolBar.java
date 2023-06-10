@@ -47,6 +47,7 @@ public class NoteToolBar {
     private JToggleButton flagBtn8;
     private JToggleButton flagBtn9;
     private JToggleButton flagBtn10;
+    private JToggleButton flagBtn11;
 
     public NoteToolBar(ScoreModel scoreModel, ScoreUpdater scoreUpdater, ToolbarUpdater toolbarUpdater, JPanel content) {
         this.scoreModel = scoreModel;
@@ -252,7 +253,8 @@ public class NoteToolBar {
         toolbar2.addSeparator(new Dimension(20, 40));
         toolbar2.add(new JLabel("Markup: "));
 
-        // FLAGS:   AMBITUS, ATTRIBUTES, PARALLELS, INTERVALS, CROSSINGS, LYRICS, NOTE_ATTRIBUTES, COLOR_VOICES, HARMONY, RIEMANN
+        // FLAGS:   AMBITUS, ATTRIBUTES, PARALLELS, INTERVALS, CROSSINGS, LYRICS, NOTE_ATTRIBUTES, COLOR_VOICES, HARMONY, RIEMANN, VELOCITY
+
         flagBtn1 = makeToggleButton("toolbar/flagAmbitus", "Ambitus", 12);
         makeAction(flagBtn1, KeyEvent.VK_A, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
             if (!flagBtn1.isSelected()) {
@@ -299,7 +301,7 @@ public class NoteToolBar {
 
         toolbar2.addSeparator(new Dimension(10, 40));
 
-        // flagBtn: 3 (Par), 4 (Int), 5 (Cros), 6 (Lyr), 9 (Harmony), 10 (Riemann) belong to one radio group!
+        // flagBtn: 3 (Par), 4 (Int), 5 (Cros), 6 (Lyr), 9 (Harmony), 10 (Riemann), 11 (Velocity) belong to one radio group!
         flagBtn3 = makeToggleButton("toolbar/flagParallels", "Parallels", 12);
         makeAction(flagBtn3, KeyEvent.VK_P, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
             if (!flagBtn3.isSelected()) {
@@ -311,6 +313,7 @@ public class NoteToolBar {
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.VELOCITY);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
         });
@@ -327,6 +330,7 @@ public class NoteToolBar {
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.VELOCITY);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
         });
@@ -343,6 +347,7 @@ public class NoteToolBar {
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.VELOCITY);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
         });
@@ -359,6 +364,7 @@ public class NoteToolBar {
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.VELOCITY);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
         });
@@ -375,6 +381,7 @@ public class NoteToolBar {
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.INTERVALS);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.VELOCITY);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
         });
@@ -391,10 +398,28 @@ public class NoteToolBar {
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.INTERVALS);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
                 scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.VELOCITY);
             }
             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
         });
         toolbar2.add(flagBtn10);
+
+        flagBtn11 = makeToggleButton("toolbar/flagVelocity", "Velocity", 12);
+        makeAction(flagBtn11, KeyEvent.VK_V, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            if (!flagBtn11.isSelected()) {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.VELOCITY);
+            } else {
+                scoreModel.getScoreBuilder().getScoreParameter().markup.add(Markup.Type.VELOCITY);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.RIEMANN);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.HARMONY);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.PARALLELS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.INTERVALS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.LYRICS);
+                scoreModel.getScoreBuilder().getScoreParameter().markup.remove(Markup.Type.CROSSINGS);
+            }
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+        toolbar2.add(flagBtn11);
 
         updateFlags();
     }
@@ -498,5 +523,6 @@ public class NoteToolBar {
         flagBtn8.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.COLOR_VOICES));
         flagBtn9.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.HARMONY));
         flagBtn10.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.RIEMANN));
+        flagBtn11.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.VELOCITY));
     }
 }
