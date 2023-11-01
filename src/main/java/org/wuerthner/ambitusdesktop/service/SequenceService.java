@@ -3,6 +3,7 @@ package org.wuerthner.ambitusdesktop.service;
 import org.wuerthner.ambitus.model.*;
 import org.wuerthner.ambitusdesktop.score.AmbitusSelection;
 import org.wuerthner.cwn.api.CwnTrack;
+import org.wuerthner.cwn.api.Trias;
 import org.wuerthner.cwn.position.PositionTools;
 import org.wuerthner.cwn.sample.SampleTimeSignatureEvent;
 import org.wuerthner.cwn.sample.SampleTrack;
@@ -24,6 +25,7 @@ public class SequenceService {
             sequence = new Sequence(Sequence.PPQ, arrangement.getPPQ());
             Track tempoTrack = sequence.createTrack();
             List<CwnTrack> trackList = arrangement.getTrackList();
+            startPosition = PositionTools.getPosition(arrangement.getFirstActiveMidiTrack().get(), new Trias(arrangement.getBarOffset(),0,0));
             for (int trackNo = 0; trackNo < trackList.size(); trackNo++) {
                 if (trackList.get(trackNo) instanceof MidiTrack) {
                     MidiTrack midiTrack = (MidiTrack) trackList.get(trackNo);

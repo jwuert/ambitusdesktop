@@ -1,46 +1,71 @@
 plugins {
     id 'java'
+    id 'jacoco-report-aggregation'
+    id 'com.github.spotbugs' version '4.8.0' apply true
     id 'maven-publish'
-    id "edu.sc.seis.launch4j" version "2.5.0"
 }
 
 group 'org.wuerthner.ambitusdesktop'
-version '1.2-SNAPSHOT'
+version '1.2.0-SNAPSHOT'
 
-jar {
-    manifest {
-        attributes("Implementation-Version": project.version, "CopyrightYear": new Date().format("yyyy"))
-    }
-}
 repositories {
     mavenLocal()
+    maven {
+        url 'http://diskstation2:8081/repository/maven-releases/'
+        allowInsecureProtocol = true
+    }
+    maven {
+        url 'http://diskstation2:8081/repository/maven-snapshots/'
+        allowInsecureProtocol = true
+    }
     mavenCentral()
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
 }
 
-dependencies {
-    implementation 'org.wuerthner.score:score:1.1.0-SNAPSHOT'
-    implementation 'org.wuerthner.sport:sport:1.0.0-SNAPSHOT'
-    implementation 'org.wuerthner.ambitus:ambitusmodel:1.1.0-SNAPSHOT'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+spotbugs {
+    ignoreFailures = true
+    reportLevel = "high"
 }
 
-launch4j { //used for windows
-    mainClassName = 'org.wuerthner.ambitusdesktop.Ambitus'
-    bundledJrePath = 'jdk-11'
-    bundledJre64Bit = true
-    jreMinVersion = '11'
+tasks.named('check') {
+    dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
 }
 
+publishing {
+    repositories {
+        maven {
+            name = 'nexus'
+            def urlLocalSnapshot = 'http://localhost:8082/repository/maven-snapshots/'
+            def urlLocalReleases = 'http://localhost:8082/repository/maven-releases/'
+            def urlDSReleases = 'http://diskstation2:8081/repository/maven-releases/'
+            def urlDSSnapshots = 'http://diskstation2:8081/repository/maven-snapshots/'
+            url = version.endsWith('SNAPSHOT') ? urlDSSnapshots : urlDSReleases;
 
-//task addJreToDistributable(type: Copy) {
-//    from zipTree("resources/desktop-deployment/OpenJDK11U-jre_x64_windows_hotspot_11.0.4_11.zip")
-//    destinationDir = file("$buildDir/launch4j")
-//}
-
-//packageExecutableDistribution.dependsOn createExe
-//packageExecutableDistribution.dependsOn addJreToDistributable
+            allowInsecureProtocol = true;
+            credentials {
+                username = project.repoUser
+                password = project.repoPassword
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            artifactId = rootProject.name
+            from components.java
+        }
+    }
+}
 
 test {
     useJUnitPlatform()
+}
+
+dependencies {
+    implementation 'org.wuerthner.score:score:1.2.0'
+    implementation 'org.wuerthner.sport:sport:1.0.0'
+    implementation 'org.wuerthner.ambitus:ambitusmodel:1.0.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ExportService {
@@ -27,17 +28,18 @@ public class ExportService {
         for (int tempo : tempoList) {
             // ranges
             List<NamedRange> rangeList = arrangement.getRangeList();
-            rangeList.add(new NamedRange("all:0-0"));
-            for (NamedRange range : rangeList) {
+            rangeList.add(new NamedRange("Total", arrangement.findLastPosition()));
+            for (int rangeIndex = 0; rangeIndex<rangeList.size(); rangeIndex++) {
+                NamedRange range = rangeList.get(rangeIndex);
+                Optional<NamedRange> nextRange = rangeIndex+1<rangeList.size() ? Optional.of(rangeList.get(rangeIndex+1)) : Optional.empty();
                 String rangeName;
-                if (range.name.equals("all")) {
-                    rangeName = "Total - ";
-                    arrangement.getSelection().clear();
-                    arrangement.setOffsetToFirstBar();
-                } else {
-                    rangeName = range.name + " - ";
-                    selectionTools.selectRange(arrangement, range);
+                long endPosition = 0;
+                rangeName = range.name + " - ";
+                arrangement.setTransientBarOffsetPosition(range.start);
+                if (nextRange.isPresent()) {
+                    endPosition = nextRange.get().start;
                 }
+
                 String composer = arrangement.getAttributeValue(Arrangement.composer);
                 String name = arrangement.getAttributeValue(Arrangement.name);
 
@@ -46,7 +48,7 @@ public class ExportService {
                     if (exposeValue == 0) {
                         String fileBase = composer + " - " + name + " - " + rangeName + " - " + tempo;
                         File midiFile = createOutputFile(composer, name, fileBase + ".mid");
-                        writeMidi(arrangement, midiFile, -1, 0, tempo);
+                        writeMidi(arrangement, endPosition, midiFile, -1, 0, tempo);
                         if (midiFile.exists()) {
                             // mp3
                             File mp3File = createOutputFile(composer, name, fileBase + ".mp3");
@@ -62,7 +64,7 @@ public class ExportService {
                             CwnTrack track = trackList.get(exposedTrack);
                             String fileBase = composer + " - " + name + " - " + rangeName + track.getName() + " - " + tempo;
                             File midiFile = createOutputFile(composer, name, track.getName(), fileBase + ".mid");
-                            writeMidi(arrangement, midiFile, exposedTrack, exposeStrength, tempo);
+                            writeMidi(arrangement, endPosition, midiFile, exposedTrack, exposeStrength, tempo);
                             if (midiFile.exists()) {
                                 // mp3
                                 File mp3File = createOutputFile(composer, name, track.getName(), fileBase + ".mp3");
@@ -80,9 +82,8 @@ public class ExportService {
         }
     }
 
-    private void writeMidi(Arrangement arrangement, File outputFile, int exposedTrack, int exposeStrength, int tempo) {
+    private void writeMidi(Arrangement arrangement, long endPosition, File outputFile, int exposedTrack, int exposeStrength, int tempo) {
         try {
-            long endPosition = arrangement.findLastPosition();
             Sequence sequence = sequenceService.createSequence(arrangement, endPosition, null, exposedTrack, exposeStrength, tempo);
             MidiSystem.write(sequence, 1, outputFile);
         } catch (Exception e) {
@@ -100,6 +101,9 @@ public class ExportService {
         if (trackName == null) {
             trackName = "all";
         }
+        trackName = trackName==null ? "Track" : trackName;
+        composer = composer==null ? "Comp" : composer;
+        opus = opus==null ? "Opus" : opus;
         File trackDir = new File(ambitusDir, trackName.replaceAll(" ", "_"));
         File composerDir = new File(trackDir, composer.replaceAll(" ", "_"));
         File opusDir = new File(composerDir, opus.replaceAll(" ", "_"));
