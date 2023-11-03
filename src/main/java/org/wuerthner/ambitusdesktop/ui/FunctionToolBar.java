@@ -1051,7 +1051,7 @@ public class FunctionToolBar implements PositionUpdater {
                 JFrame infoFrame = new JFrame("Info");
                 infoFrame.setLayout(new BorderLayout());
 
-                JLabel label = new JLabel("Ambitus, J. Würthner (c) 2022");
+                JLabel label = new JLabel("Ambitus, J. Würthner (c) 2023");
                 label.setHorizontalAlignment(JLabel.CENTER);
                 label.setPreferredSize(new Dimension(520, 32));
                 infoFrame.getContentPane().add(label, BorderLayout.PAGE_START);
