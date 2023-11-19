@@ -35,17 +35,15 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FunctionToolBar implements PositionUpdater {
+public class FunctionToolBar {
     private final JToolBar functionToolbar;
-    private final MidiService midiService = new MidiService();
+
     private final PrintService printService = new PrintService();
-    private final ExportService exportService = new ExportService();
     private final Map<String,JButton> toolMap = new HashMap<>();
     private final ScoreModel scoreModel;
     private final ScoreUpdater scoreUpdater;
-    private final PanelUpdater panelUpdater;
     private final ToolbarUpdater toolbarUpdater;
-    private final JTextField positionField;
+    private final PanelUpdater panelUpdater;
     private JFileChooser fileChooser = null;
     private RecentFileChooser.RecentFileList recentFileList = null;
 
@@ -100,7 +98,7 @@ public class FunctionToolBar implements PositionUpdater {
                             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
                             panelUpdater.updatePanel();
                             updateToolbar();
-                            updatePosition();
+                            // updatePosition();
                         }
                     } catch (IOException ioe) {
                         ioe.printStackTrace();
@@ -134,7 +132,7 @@ public class FunctionToolBar implements PositionUpdater {
                             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
                             panelUpdater.updatePanel();
                             updateToolbar();
-                            updatePosition();
+                            // updatePosition();
                         }
                     } catch (IOException ioe) {
                         ioe.printStackTrace();
@@ -170,7 +168,7 @@ public class FunctionToolBar implements PositionUpdater {
                             scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
                             panelUpdater.updatePanel();
                             updateToolbar();
-                            updatePosition();
+                            // updatePosition();
                         }
                     } catch (IOException ioe) {
                         ioe.printStackTrace();
@@ -231,7 +229,7 @@ public class FunctionToolBar implements PositionUpdater {
         functionToolbar.add(printBtn);
 
         // Close Document
-        JButton closeDocument = makeButton("toolbar/close", "Close Document",0);
+        JButton closeDocument = makeButton("toolbar/close", "Close Document",24);
         AbstractAction closeDocumentAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -716,227 +714,6 @@ public class FunctionToolBar implements PositionUpdater {
         // SEPARATOR
         functionToolbar.addSeparator(new Dimension(10, 40));
 
-        // Rewind
-        JButton firstBtn = makeButton("toolbar/first", "Rewind", 24);
-        AbstractAction firstAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                scoreModel.getArrangement().setOffsetToFirstBar();
-                scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
-                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
-                updateToolbar();
-                updatePosition();
-            }
-        };
-        firstBtn.addActionListener(firstAction);
-        firstBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, KeyEvent.ALT_DOWN_MASK), "rewind");
-        firstBtn.getActionMap().put("rewind", firstAction);
-        toolMap.put("rewind", firstBtn);
-        functionToolbar.add(firstBtn);
-
-        // Previous
-        JButton prevBtn = makeButton("toolbar/previous", "Previous Bar", 24);
-        AbstractAction prevAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                scoreModel.getArrangement().decreaseBarOffset(1);
-                scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
-                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
-                updateToolbar();
-                updatePosition();
-            }
-        };
-        prevBtn.addActionListener(prevAction);
-        prevBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK), "previous");
-        prevBtn.getActionMap().put("previous", prevAction);
-        toolMap.put("previous", prevBtn);
-        functionToolbar.add(prevBtn);
-
-        // Position
-        Color positionFieldColor = new Color(0,120,0);
-        positionField = new JTextField();
-        positionField.setMaximumSize(new Dimension(110, 36));
-        positionField.setMinimumSize(new Dimension(110, 36));
-        positionField.setPreferredSize(new Dimension(110, 36));
-        positionField.setSize(new Dimension(110, 36));
-        positionField.setEditable(true);
-        positionField.setBorder(FieldFocusListener.etchlBorder);
-        positionField.setBackground(Color.LIGHT_GRAY);
-        positionField.setForeground(positionFieldColor);
-        positionField.setFont(new Font("Dialog", Font.BOLD, 12));
-        positionField.setText(new Trias(0,0,0).toFormattedString());
-        positionField.addFocusListener(new FieldFocusListener(scoreModel, positionFieldColor));
-        positionField.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String text = positionField.getText();
-                if (text != null && !text.trim().equals("")) {
-                    Trias trias = new Trias(text);
-                    int newBar = trias.bar;
-                    scoreModel.getArrangement().setTransientBarOffset(newBar);
-                    scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
-                }
-                positionField.getParent().getParent().requestFocus();
-                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
-                updateToolbar();
-                updatePosition();
-            }
-        });
-        functionToolbar.add(positionField);
-
-        // Next
-        JButton nextBtn = makeButton("toolbar/next", "Next Bar",24);
-        AbstractAction nextAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                scoreModel.getArrangement().increaseBarOffset(1);
-                scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
-                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
-                updateToolbar();
-                updatePosition();
-            }
-        };
-        nextBtn.addActionListener(nextAction);
-        nextBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK), "next");
-        nextBtn.getActionMap().put("next", nextAction);
-        toolMap.put("next", nextBtn);
-        functionToolbar.add(nextBtn);
-
-        // End
-        JButton lastBtn = makeButton("toolbar/last", "Last Bar", 24);
-        AbstractAction lastAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                scoreModel.getArrangement().setOffsetToLastBar();
-                scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
-                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
-                updateToolbar();
-                updatePosition();
-            }
-        };
-        lastBtn.addActionListener(lastAction);
-        lastBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_END, KeyEvent.ALT_DOWN_MASK), "last");
-        lastBtn.getActionMap().put("last", lastAction);
-        toolMap.put("last", lastBtn);
-        functionToolbar.add(lastBtn);
-
-        // Stop
-        JButton stopBtn = makeButton("toolbar/stop", "Stop",24);
-        AbstractAction stopAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                midiService.stop();
-                updateToolbar();
-            }
-        };
-        stopBtn.addActionListener(stopAction);
-        stopBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "stop");
-        stopBtn.getActionMap().put("stop", stopAction);
-        toolMap.put("stop", stopBtn);
-        functionToolbar.add(stopBtn);
-
-        // Play
-        JButton playBtn = makeButton("toolbar/play", "Play",24);
-        AbstractAction playAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,false);
-                new Thread(new ScorePlayer(content, toolbarUpdater, FunctionToolBar.this)).start();
-                updateToolbar();
-            }
-        };
-        playBtn.addActionListener(playAction);
-        playBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "play");
-        playBtn.getActionMap().put("play", playAction);
-        toolMap.put("play", playBtn);
-        functionToolbar.add(playBtn);
-
-        // Play Config
-        JButton playConfBtn = makeButton("toolbar/playConfig", "Play Configuration",24);
-        AbstractAction playConfAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String tempo = "" + scoreModel.getPlayTempo();
-                String strength = "" + scoreModel.getPlayStrength();
-
-                List<String> exposeList = new ArrayList<>();
-                exposeList.add("-");
-                exposeList.addAll(scoreModel.getTrackList().stream().map(track -> track.getName()).collect(Collectors.toList()));
-                exposeList.add(scoreModel.getPlayExpose() < 0 ? "-" : exposeList.get(scoreModel.getPlayExpose() + 1));
-                List<String> strengthList = new ArrayList<>();
-                strengthList.addAll(Arrays.asList("1", "2", "3", "4"));
-                strengthList.add(strength);
-                ParameterDialog pd = new ParameterDialog(new String[]{"Play"},
-                        new String[]{"Tempo", "Expose", "Strength"},
-                        new Object[]{tempo, exposeList.toArray(new String[]{}), strengthList.toArray(new String[]{})},
-                        content);
-                String[] parameters = pd.getParameters();
-                if (parameters!=null) {
-                    String newTempoS = parameters[0];
-                    String newExposeS = parameters[1];
-                    String newStrengthS = parameters[2];
-                    try {
-                        int newTempo = Integer.valueOf(newTempoS);
-                        int newStrength = Integer.valueOf(newStrengthS);
-                        int newExpose = exposeList.indexOf(newExposeS) - 1;
-                        scoreModel.setPlayExpose(newExpose);
-                        scoreModel.setPlayStrength(newStrength);
-                        scoreModel.setPlayTempo(newTempo);
-                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false, false, newTempo, newExpose, newStrength);
-                        new Thread(new ScorePlayer(content, toolbarUpdater, FunctionToolBar.this)).start();
-                    } catch (Exception e2) {
-                        e2.printStackTrace();
-                    }
-                }
-                updateToolbar();
-            }
-        };
-        playConfBtn.addActionListener(playConfAction);
-        // playConfBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.ALT_DOWN_MASK), "playConfiguration");
-        playConfBtn.getActionMap().put("playConfiguration", playConfAction);
-        toolMap.put("playConfiguration", playConfBtn);
-        functionToolbar.add(playConfBtn);
-
-        // Play Selection
-        JButton playSelBtn = makeButton("toolbar/playSelection", "Play Selection",24);
-        AbstractAction playSelAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), true, false);
-                new Thread(new ScorePlayer(content, toolbarUpdater, FunctionToolBar.this)).start();
-                updateToolbar();
-            }
-        };
-        playSelBtn.addActionListener(playSelAction);
-        playSelBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK), "playSelection");
-        playSelBtn.getActionMap().put("playSelection", playSelAction);
-        toolMap.put("playSelection", playSelBtn);
-        functionToolbar.add(playSelBtn);
-
-        // Export
-        JButton exportBtn = makeButton("toolbar/exportCollection", "Export Collection",24);
-        AbstractAction exportAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String tempo = "80, 100";
-                List<String> strengthList = Arrays.asList("-", "1", "2", "3", "4", "-");
-                ParameterDialog pd = new ParameterDialog(new String[]{"Create Range"},
-                        new String[]{"Tempi", "Strength"},
-                        new Object[]{tempo, strengthList.toArray(new String[]{})},
-                        content);
-                String[] parameters = pd.getParameters();
-                if (parameters != null) {
-                    String tempi = parameters[0];
-                    int strength = strengthList.indexOf(parameters[1]);
-                    exportService.export(scoreModel.getArrangement(), scoreModel, strength, tempi);
-                }
-                updateToolbar();
-            }
-        };
-        exportBtn.addActionListener(exportAction);
-        // exportBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK), "playSelection");
-        exportBtn.getActionMap().put("export", exportAction);
-        toolMap.put("export", exportBtn);
-        functionToolbar.add(exportBtn);
-
-
-        // SEPARATOR
-        functionToolbar.addSeparator(new Dimension(10, 40));
 
         // Zoom
         JButton zoomBtn = makeButton("toolbar/zoom", "Zoom",24);
@@ -1062,23 +839,12 @@ public class FunctionToolBar implements PositionUpdater {
 
                 Vector<Vector<String>> rowData = new Vector<>();
 
-                rowData.add(new Vector<String>(Arrays.asList("Left Arrow", "Select event at previous position")));
-                rowData.add(new Vector<String>(Arrays.asList("Right Arrow", "Select event at following position")));
-                rowData.add(new Vector<String>(Arrays.asList("Up Arrow", "Select following event")));
-                rowData.add(new Vector<String>(Arrays.asList("Down Arrow", "Select previous event")));
-                rowData.add(new Vector<String>(Arrays.asList("Page Up", "Select previous staff")));
-                rowData.add(new Vector<String>(Arrays.asList("Page Down", "Select the following staff")));
-                rowData.add(new Vector<String>(Arrays.asList("Alt Left Arrow", "Decrease bar offset")));
-                rowData.add(new Vector<String>(Arrays.asList("Alt Right Arrow", "Increase bar offset")));
-                rowData.add(new Vector<String>(Arrays.asList("Alt Home", "Reset bar offset to zero")));
-                rowData.add(new Vector<String>(Arrays.asList("Alt End", "Set bar offset to end")));
+                rowData.add(new Vector<String>(Arrays.asList("Left/Right/Up/Down Arrows", "Move the note cursor through the staff")));
+                rowData.add(new Vector<String>(Arrays.asList("Page Up/Page Down", "Move the staff cursor through the system")));
 
-                rowData.add(new Vector<String>(Arrays.asList("Ctrl Left Arrow", "Move note left")));
-                rowData.add(new Vector<String>(Arrays.asList("Ctrl Right Arrow", "Move note right")));
-                rowData.add(new Vector<String>(Arrays.asList("Ctrl Up Arrow", "Move note up")));
-                rowData.add(new Vector<String>(Arrays.asList("Ctrl Down Arrow", "Move note down")));
-                rowData.add(new Vector<String>(Arrays.asList("Shift Left Arrow", "Decrease note length (grid)")));
-                rowData.add(new Vector<String>(Arrays.asList("Shift Right Arrow", "Increase note length (grid)")));
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl Left/Right Arrows", "Change note position")));
+                rowData.add(new Vector<String>(Arrays.asList("Ctrl Up/Down Arrows", "Change note pitch")));
+                rowData.add(new Vector<String>(Arrays.asList("Shift Left/Right Arrow", "Change note length (grid)")));
                 rowData.add(new Vector<String>(Arrays.asList("Ctrl #", "Increase enharmonic shift")));
                 rowData.add(new Vector<String>(Arrays.asList("Ctrl b", "Decrease enharmonic shift")));
                 rowData.add(new Vector<String>(Arrays.asList("Ctrl d", "Double note length")));
@@ -1088,6 +854,8 @@ public class FunctionToolBar implements PositionUpdater {
                 rowData.add(new Vector<String>(Arrays.asList("Ctrl .", "Toggle none, one, two or three dots")));
                 rowData.add(new Vector<String>(Arrays.asList("Ctrl m", "Mute/unmute selected track")));
                 rowData.add(new Vector<String>(Arrays.asList("F5", "Refresh display")));
+                rowData.add(new Vector<String>(Arrays.asList("Scroll wheel", "Change position offset")));
+                rowData.add(new Vector<String>(Arrays.asList("Alt Home", "Reset the display to the first bar")));
 
                 JTable table = new JTable(rowData, columnData);
                 JScrollPane scrollPane = new JScrollPane(table);
@@ -1367,7 +1135,7 @@ public class FunctionToolBar implements PositionUpdater {
         toolMap.get("write").setEnabled(dirty);
         toolMap.get("writeAs").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("print").setEnabled(noOfTracks > 0 && notPlaying);
-        toolMap.get("closeDocument").setEnabled(notPlaying);
+        toolMap.get("closeDocument").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("prop").setEnabled(notPlaying);
         toolMap.get("addTrack").setEnabled(notPlaying);
         toolMap.get("addLyrics").setEnabled(hasSingleSelection && notPlaying);
@@ -1386,17 +1154,18 @@ public class FunctionToolBar implements PositionUpdater {
         toolMap.get("transpose").setEnabled(noOfTracks>0 && notPlaying);
         if (scoreModel.debug()) toolMap.get("cleanup").setEnabled(noOfTracks>0 && notPlaying);
         toolMap.get("autoshift").setEnabled(noOfTracks>0 && notPlaying);
-        toolMap.get("rewind").setEnabled(noOfTracks > 0);
-        toolMap.get("previous").setEnabled(noOfTracks > 0);
-        toolMap.get("next").setEnabled(noOfTracks > 0);
-        toolMap.get("last").setEnabled(noOfTracks > 0);
-        toolMap.get("play").setEnabled(noOfTracks > 0 && notPlaying);
-        toolMap.get("playConfiguration").setEnabled(noOfTracks > 0 && notPlaying);
-        toolMap.get("playSelection").setEnabled(noOfTracks > 0 && notPlaying);
-        toolMap.get("export").setEnabled(noOfTracks > 0 && notPlaying);
-        toolMap.get("stop").setEnabled(! notPlaying);
+        toolMap.get("velocity").setEnabled(noOfTracks>0 && notPlaying);
+//        toolMap.get("rewind").setEnabled(noOfTracks > 0);
+//        toolMap.get("previous").setEnabled(noOfTracks > 0);
+//        toolMap.get("next").setEnabled(noOfTracks > 0);
+//        toolMap.get("last").setEnabled(noOfTracks > 0);
+//        toolMap.get("play").setEnabled(noOfTracks > 0 && notPlaying);
+//        toolMap.get("playConfiguration").setEnabled(noOfTracks > 0 && notPlaying);
+//        toolMap.get("playSelection").setEnabled(noOfTracks > 0 && notPlaying);
+//        toolMap.get("export").setEnabled(noOfTracks > 0 && notPlaying);
+//         toolMap.get("stop").setEnabled(! notPlaying);
         toolMap.get("range").setEnabled(noOfTracks > 0);
-        updatePosition();
+        // updatePosition();
     }
 
     public JToolBar getFunctionToolbar() {
@@ -1405,18 +1174,5 @@ public class FunctionToolBar implements PositionUpdater {
 
     public Map<String,JButton> getToolMap() {
         return toolMap;
-    }
-
-    @Override
-    public void updatePosition() {
-        long position = MidiService.getPosition();
-        if (position == 0) {
-            position = scoreModel.getArrangement().getBarOffsetPosition();
-        }
-        if (!scoreModel.getTrackList().isEmpty()) {
-            CwnTrack track = scoreModel.getTrackList().get(0);
-            Trias trias = PositionTools.getTrias(track, position);
-            positionField.setText(trias.toFormattedString());
-        }
     }
 }

@@ -186,11 +186,11 @@ public class NoteToolBar {
 //            updateSelector(tupletButtonGroup, NoteSelector.T4);
 //        });
 
-//        JToggleButton tupletBtn5 = makeGroupButton("images/buttons/nbTuplet5", tupletButtonGroup, NoteSelector.T5, toolbar2);
-//        makeAction(tupletBtn5, KeyEvent.VK_5, KeyEvent.ALT_DOWN_MASK, () -> {
-//            scoreModel.setTupletSelector(NoteSelector.T5);
-//            updateSelector(tupletButtonGroup, NoteSelector.T5);
-//        });
+        JToggleButton tupletBtn5 = makeGroupButton("images/buttons/nbTuplet5", tupletButtonGroup, NoteSelector.T5, toolbar2);
+        makeAction(tupletBtn5, KeyEvent.VK_5, KeyEvent.ALT_DOWN_MASK, () -> {
+            scoreModel.setTupletSelector(NoteSelector.T5);
+            updateSelector(tupletButtonGroup, NoteSelector.T5);
+        });
 
 //        JToggleButton tupletBtn6 = makeGroupButton("images/buttons/nbTuplet6", tupletButtonGroup, NoteSelector.T6, toolbar2);
 //        makeAction(tupletBtn6, KeyEvent.VK_6, KeyEvent.ALT_DOWN_MASK, () -> {

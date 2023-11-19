@@ -81,7 +81,6 @@ public class ScoreModel {
 
     private ScoreParameter createScoreParameter(Arrangement arrangement) {
         List<DurationType> durationTypeList = new ArrayList<>();
-
         durationTypeList.add(DurationType.REGULAR);
         durationTypeList.add(DurationType.DOTTED);
         ScoreParameter scoreParameter = new ScoreParameter(
@@ -270,7 +269,7 @@ public class ScoreModel {
             NoteEvent note = track.findFirstEventAtPositionOrNull(position, NoteEvent.class);
             if (note != null && note.getPitch() == pitch) {
                 // SELECT
-                selection.set(note, staff, CwnSelection.SelectionType.NOTE);
+                selection.set(note, staff, CwnSelection.SelectionType.NOTE, CwnSelection.SelectionSubType.NONE);
                 noteEventOptional = Optional.of(note);
             }
         }
@@ -279,21 +278,21 @@ public class ScoreModel {
 
     public void addOrSelectNoteEvent(long position, int pitch, int enharmonicShift, int staff, boolean selectOnly) {
         if (arrangement != null) {
+            int voice = voiceSelector==NoteSelector.V1 ? 0 : 1;
             AbstractSelection selection = arrangement.getSelection();
             MidiTrack track = arrangement.getChildrenByClass(MidiTrack.class).get(staff);
-            NoteEvent note = track.findFirstNoteAtPositionOrNull(position, pitch);
+            NoteEvent note = track.findFirstNoteAtPositionInVoiceOrNull(position, voice);
+            long duration = (long) (noteSelector.getNoteLength() * getPPQ() * 4 * tupletSelector.getTupletFactor());
             if (note!=null && note.getPitch()==pitch) {
                 // SELECT
-                selection.set(note, staff, CwnSelection.SelectionType.NOTE);
+                selection.set(note, staff, CwnSelection.SelectionType.NOTE, CwnSelection.SelectionSubType.NONE);
             } else if (selectOnly) {
                 note = track.findFirstNoteAtPositionOrNull(position);
-                if (note!=null) {
-                    selection.set(note, staff, CwnSelection.SelectionType.NOTE);
+                if (note != null) {
+                    selection.set(note, staff, CwnSelection.SelectionType.NOTE, CwnSelection.SelectionSubType.NONE);
                 }
             } else {
                 // CREATE
-                long duration = (long) (noteSelector.getNoteLength() * getPPQ() * 4 * tupletSelector.getTupletFactor());
-                int voice = voiceSelector==NoteSelector.V1 ? 0 : 1;
                 NoteEvent noteEvent = factory.createElement(NoteEvent.TYPE);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.position, position);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.duration, duration);
@@ -301,10 +300,10 @@ public class ScoreModel {
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.shift, enharmonicShift);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.velocity, 87);
                 noteEvent.performTransientSetAttributeValueOperation(NoteEvent.voice, voice);
-                arrangement.addEvent(track, noteEvent);
+                arrangement.addEventWithCaution(track, noteEvent);
                 selection.unsetMouseFrame();
                 int i = arrangement.getChildrenByClass(MidiTrack.class).indexOf(track);
-                selection.set(noteEvent, i, CwnSelection.SelectionType.NOTE);
+                selection.set(noteEvent, i, CwnSelection.SelectionType.NOTE, CwnSelection.SelectionSubType.NONE);
                 scoreBuilder.update(new ScoreUpdate(track, selection));
             }
         }
@@ -314,24 +313,30 @@ public class ScoreModel {
         if (arrangement != null && startPosition.isPresent() && endPosition.isPresent()) {
             long position = startPosition.get().position;
             long duration = endPosition.get().position - position;
+            int voice = voiceSelector==NoteSelector.V1 ? 0 : 1;
             int staff = endPosition.get().staffIndex;
+            int deltaY = endPosition.get().yRelative - startPosition.get().yRelative;
+            int relativeY = startPosition.get().yRelative;
             AbstractSelection selection = arrangement.getSelection();
             MidiTrack track = arrangement.getChildrenByClass(MidiTrack.class).get(staff);
             SymbolEvent symbol = track.findFirstEventAtPositionOrNull(position, SymbolEvent.class);
             if (symbol!=null && symbol.getSymbolName().equals(name)) {
                 // SELECT
-                selection.set(symbol, staff, CwnSelection.SelectionType.NOTE);
+                selection.set(symbol, staff, CwnSelection.SelectionType.NOTE, CwnSelection.SelectionSubType.NONE);
             } else {
                 // CREATE
                 SymbolEvent symbolEvent = factory.createElement(SymbolEvent.TYPE);
                 symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.duration, duration);
                 symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.name, name);
                 symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.position, position);
+                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.verticalOffset, relativeY);
+                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.parameter, deltaY);
+                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.voice, voice);
                 arrangement.addEvent(track, symbolEvent);
-                System.out.println("yes");
+
                 selection.unsetMouseFrame();
                 int i = arrangement.getChildrenByClass(MidiTrack.class).indexOf(track);
-                selection.set(symbolEvent, i, CwnSelection.SelectionType.NOTE);
+                selection.set(symbolEvent, i, CwnSelection.SelectionType.NOTE, CwnSelection.SelectionSubType.NONE);
                 scoreBuilder.update(new ScoreUpdate(track, selection));
             }
         }
@@ -540,7 +545,7 @@ public class ScoreModel {
         }
         AbstractSelection selection = arrangement.getSelection();
         int staff = (minStaffIndex==maxStaffIndex ? minStaffIndex : -1);
-        selection.set(eventList, staff, CwnSelection.SelectionType.NOTE);
+        selection.set(eventList, staff, CwnSelection.SelectionType.NOTE, CwnSelection.SelectionSubType.NONE);
     }
 
     public String getTitle() {

@@ -5,12 +5,9 @@ import org.wuerthner.ambitus.type.NamedRange;
 import org.wuerthner.ambitusdesktop.ui.*;
 import org.wuerthner.cwn.api.Trias;
 import org.wuerthner.cwn.position.PositionTools;
-import org.wuerthner.cwn.score.Location;
 import org.wuerthner.cwn.score.ScoreUpdate;
 
 import javax.swing.*;
-import javax.swing.plaf.metal.MetalLookAndFeel;
-import javax.swing.plaf.metal.OceanTheme;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -22,22 +19,20 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
     private final ScorePanel content;
     private final JPanel rangePanel;
     private final ScoreModel scoreModel = new ScoreModel(WIDTH);
+    private final PlayerToolBar playerToolBar;
 
     private FunctionToolBar functionToolBar;
     private NoteToolBar noteToolBar;
     private SymbolToolBar symbolToolBar;
 
+
     public Ambitus() {
-//        try {
-//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-//        }
         String version = getClass().getPackage().getImplementationVersion();
         if (version==null) version = "IDE";
         final JFrame frame = new JFrame("Ambitus " + version);
         updatePanel();
-        content = makeContent();
-        JComponent toolbar = makeToolBar();
+        content = new ScorePanel(scoreModel, this, this);
+        JComponent toolbar = makeFunctionToolBar();
 
         rangePanel = new JPanel();
         rangePanel.setPreferredSize(new Dimension(200, HEIGHT));
@@ -53,11 +48,14 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
         content.addMouseMotionListener(content);
         content.addMouseListener(content);
         content.addMouseWheelListener(content);
-        new ScoreKeyListener(content, scoreModel, this);
+
+
+        playerToolBar = new PlayerToolBar(scoreModel, this, this, content);
+        new ScoreKeyListener(content, scoreModel, this, this, playerToolBar);
         updateToolbar();
     }
 
-    private JComponent makeToolBar() {
+    private JComponent makeFunctionToolBar() {
         //
         // 1st toolbar
         //
@@ -83,6 +81,9 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
     public void updateToolbar() {
         if (functionToolBar!=null) {
             functionToolBar.updateToolbar();
+        }
+        if (playerToolBar!=null) {
+            playerToolBar.updateToolbar();
         }
     }
 
@@ -127,7 +128,7 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
                     AbstractAction rangeAction = new AbstractAction() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            int max = scoreModel.getArrangement().getNumberOfActiveMidiTracks() - 1;
+//                            int max = scoreModel.getArrangement().getNumberOfActiveMidiTracks() - 1;
 //                            scoreModel.select(
 //                                    new Location(null, range.start, 0, 0, 0, false, 0, 0, 0),
 //                                    new Location(null, range.end, 0, max, 0, false, 0, 0, 0), true);
@@ -149,17 +150,12 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
         updateToolbar();
     }
 
-    private ScorePanel makeContent() {
-        ScorePanel scorePanel = new ScorePanel(scoreModel, this, this);
-        return scorePanel;
-    }
-
-    public static void main(String[] args) {
-        Ambitus ambitus = new Ambitus();
-    }
-
     @Override
     public void update(ScoreUpdate update) {
         content.updateScore(update);
+    }
+
+    public static void main(String[] args) {
+        new Ambitus();
     }
 }

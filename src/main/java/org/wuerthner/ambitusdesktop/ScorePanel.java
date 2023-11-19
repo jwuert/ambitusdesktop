@@ -35,6 +35,8 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
     private long startDisplayPosition = 0;
     private long endDisplayPosition = 0;
     private JTextField lyricsField = null;
+    final private double helpSideFactor = 0.469;
+    private int helpWidth = 780;
 
     public ScorePanel(ScoreModel scoreModel, PanelUpdater panelUpdater, ToolbarUpdater toolbarUpdater) {
         this.scoreModel = scoreModel;
@@ -122,10 +124,9 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         if (scoreLayout!=null && builder!=null && scoreModel.getSelection()!=null) {
             presenter.present(scoreModel.getTitle(), scoreModel.getSubtitle(), scoreModel.getComposer(), barOffset);
             if (scoreModel.getArrangement().getActiveMidiTrackList().isEmpty()) {
-                String text = "Welcome to Ambitus!";
-                String text2 = "Click to open Wizard!";
-                scoreCanvas.drawString(text, "lyrics", (int)(0.5*this.getWidth()/zoom), (int)(0.5*this.getHeight()/zoom), "center");
-                scoreCanvas.drawString(text2, "lyrics", (int)(0.5*this.getWidth()/zoom), (int)(0.5*this.getHeight()/zoom + 12), "center");
+                initHelp(scoreCanvas, g);
+                // String welcome = "Welcome to Ambitus - Click anywhere to open Wizard!";
+                // scoreCanvas.drawString(welcome, "timeSignature", (int)(0.5*this.getWidth()/zoom), (int)(this.getHeight()/zoom -80), "center");
             } else {
                 if (MidiService.isRunning()) {
                     // cacheScore = true;
@@ -170,6 +171,26 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         } else {
             System.err.println("layout: " + (scoreLayout!=null) + ", builder: " + (builder!=null) + ", sel: " + scoreModel.getSelection());
         }
+    }
+
+    private void initHelp(AmbitusScoreCanvas scoreCanvas, Graphics g) {
+        Image helpImage = scoreCanvas.getImage("Ambitus-Help");
+        int width = this.getWidth();
+        int height = this.getHeight();
+
+        int helpHeight = (int) (helpWidth * helpSideFactor);
+        if (helpWidth > width - 20) {
+            helpWidth = width - 20;
+            helpHeight = (int) (helpWidth * helpSideFactor);
+        }
+        if (helpHeight > height - 40) {
+            helpHeight = height - 40;
+            helpWidth = (int) (helpHeight / helpSideFactor);
+        }
+        Image imgHelp = new ImageIcon(helpImage.getScaledInstance(helpWidth, helpHeight, Image.SCALE_SMOOTH)).getImage();
+        int xHelp = (int) (0.5 * (width - helpWidth));
+        int yHelp = (int) (0.5 * (g.getClipBounds().getHeight() - helpHeight));
+        g.drawImage(imgHelp, xHelp, yHelp - 40, null);
     }
 
     private int getX(MouseEvent e) {
@@ -287,6 +308,9 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
         pressLocation = Optional.ofNullable(getLocation(e));
         dragLocation = Optional.ofNullable(getLocation(e));
         releaseLocation = Optional.empty();
+        if (scoreModel.accents()) {
+            scoreModel.getSelection().getPointer().setRelativeY(pressLocation.get().yRelative);
+        }
     }
 
     @Override
@@ -297,13 +321,20 @@ public class ScorePanel extends JPanel implements MouseMotionListener, MouseList
             if (scoreModel.accents()) {
                 staff = dragLocation.get().staffIndex;
                 scoreModel.getSelection().setMouseFrame(staff, pressLocation.get().position, dragLocation.get().position);
-                scoreModel.getSelection().set(staff, CwnSelection.SelectionType.POSITION);
+                String symbolName = scoreModel.getNoteSelector().name();
+                CwnSelection.SelectionSubType subType =
+                        SymbolEvent.aboveStaff(symbolName) ? CwnSelection.SelectionSubType.ABOVE_STAFF :
+                        SymbolEvent.withinStaff(symbolName) ? CwnSelection.SelectionSubType.WITHIN_STAFF :
+                        SymbolEvent.belowStaffRange(symbolName) ? CwnSelection.SelectionSubType.BELOW_STAFF_RANGE :
+                        SymbolEvent.belowStaffPoint(symbolName) ? CwnSelection.SelectionSubType.BELOW_STAFF_POINT : CwnSelection.SelectionSubType.NONE;
+                scoreModel.getSelection().set(staff, CwnSelection.SelectionType.POSITION, subType);
+                scoreModel.getSelection().getPointer().setDeltaY(dragLocation.get().yRelative-pressLocation.get().yRelative);
             } else {
                 int minStaffIndex = Math.min(pressLocation.get().staffIndex, dragLocation.get().staffIndex);
                 int maxStaffIndex = Math.max(pressLocation.get().staffIndex, dragLocation.get().staffIndex);
                 staff = minStaffIndex==maxStaffIndex ? minStaffIndex : -1;
                 scoreModel.getSelection().setMouseFrame(staff, pressLocation.get().position, dragLocation.get().position);
-                scoreModel.getSelection().set(staff, CwnSelection.SelectionType.NOTE);
+                scoreModel.getSelection().set(staff, CwnSelection.SelectionType.NOTE, CwnSelection.SelectionSubType.NONE);
             }
         }
         updateScore(new ScoreUpdate());

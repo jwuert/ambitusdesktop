@@ -10,13 +10,14 @@ import org.wuerthner.cwn.score.ScoreUpdate;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 public class ScoreKeyListener {
     private final MidiService midiService = new MidiService();
     private final JPanel panel;
     private final ScoreModel scoreModel;
     private final ToolbarUpdater toolbarUpdater;
+    private final PositionUpdater positionUpdater;
+    private final ScoreUpdater scoreUpdater;
     private final SelectionTools selectionTools = new SelectionTools();
     private final String kLeft = "left";
     private final String kLeftCtrl = "leftCtrl";
@@ -37,14 +38,16 @@ public class ScoreKeyListener {
     private final String kRefresh = "F5";
     private final String kDot = "dot";
     private final String kMute = "mute";
+    private final String kZero = "zero";
+    private final String kHome = "home";
 
-    public ScoreKeyListener(JPanel scorePanel, ScoreModel scoreModel, ToolbarUpdater toolbarUpdater) {
+
+    public ScoreKeyListener(JPanel scorePanel, ScoreModel scoreModel, ToolbarUpdater toolbarUpdater, ScoreUpdater scoreUpdater, PositionUpdater positionUpdater) {
         this.panel = scorePanel;
         this.scoreModel = scoreModel;
         this.toolbarUpdater = toolbarUpdater;
-        ActionMap actionMap = scorePanel.getActionMap();
-        int condition = JComponent.WHEN_IN_FOCUSED_WINDOW;
-        InputMap inputMap = scorePanel.getInputMap(condition );
+        this.positionUpdater = positionUpdater;
+        this.scoreUpdater = scoreUpdater;
 
         add(scorePanel, kLeft, KeyEvent.VK_LEFT, 0);
         add(scorePanel, kLeftCtrl, KeyEvent.VK_LEFT, KeyEvent.CTRL_DOWN_MASK);
@@ -65,11 +68,15 @@ public class ScoreKeyListener {
         add(scorePanel, kRefresh, KeyEvent.VK_F5, 0);
         add(scorePanel, kDot, KeyEvent.VK_PERIOD, KeyEvent.CTRL_DOWN_MASK);
         add(scorePanel, kMute, KeyEvent.VK_M, KeyEvent.CTRL_DOWN_MASK);
+        // player:
+        add(scorePanel, kZero, KeyEvent.VK_NUMPAD0, 0);
+        add(scorePanel, kHome, KeyEvent.VK_HOME, 0);
     }
 
     private void add(JPanel panel, String key, int code, int modifiers) {
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(code, modifiers, true), key);
-        panel.getActionMap().put(key, new KeyAction(key));
+        KeyAction keyAction = new KeyAction(key);
+        panel.getActionMap().put(key, keyAction);
     }
 
     private class KeyAction extends AbstractAction {
@@ -162,6 +169,21 @@ public class ScoreKeyListener {
                 case kMute:
                     scoreModel.toggleMute();
                     scoreModel.getScoreBuilder().update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+                    break;
+                case kZero:
+                    if (MidiService.isRunning()) {
+                        // STOP
+                        MidiService.stop();
+                    } else {
+                        // PLAY
+                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,false);
+                        new Thread(new ScorePlayer(panel, toolbarUpdater, positionUpdater)).start();
+                    }
+                    break;
+                case kHome:
+                    scoreModel.getArrangement().setOffsetToFirstBar();
+                    scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
+                    scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
                     break;
                 default:
             }

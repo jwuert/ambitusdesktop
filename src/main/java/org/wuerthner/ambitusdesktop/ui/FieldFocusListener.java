@@ -1,5 +1,6 @@
 package org.wuerthner.ambitusdesktop.ui;
 
+import org.wuerthner.ambitusdesktop.ScoreKeyListener;
 import org.wuerthner.ambitusdesktop.ScoreModel;
 import org.wuerthner.cwn.score.Score;
 
@@ -15,10 +16,6 @@ public class FieldFocusListener implements FocusListener {
     static final Border loweredBorder = BorderFactory.createCompoundBorder(BorderFactory.createLoweredBevelBorder(),BorderFactory.createEmptyBorder(0,4,0,4));
     private final ScoreModel scoreModel;
     private final Color fgColor;
-
-    public FieldFocusListener(ScoreModel scoreModel) {
-        this(scoreModel, Color.black);
-    }
 
     public FieldFocusListener(ScoreModel scoreModel, Color fgColor) {
         this.scoreModel = scoreModel;
