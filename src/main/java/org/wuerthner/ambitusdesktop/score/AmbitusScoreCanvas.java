@@ -186,55 +186,39 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
 
         int extraVerticalSpace = 8;
         int width = x2-x1;
-        int height = yBottom-yTop ;//+ extraVerticalSpace;
+        int height = yBottom-yTop ;
         yTop -= extraVerticalSpace;
         height += extraVerticalSpace;
-        // if (height==0) height = 3;
-//        height = (int) (0.5*height) + 20;
-//        x1 = x1 + 4;
-//        y1 = y1 - 7;
         if (alternative) {
             g.setColor(Color.RED);
         }
         if (direction==1) {
-//            g.drawArc((int) (x1*zoom),     (int) (y1*zoom),        (int) (width*zoom),     (int) (height*zoom), 0, 180);
-//            g.drawArc((int) ((x1-2)*zoom), (int) ((y1+0.75)*zoom), (int) ((width+4)*zoom), (int) ((height-1)*zoom), 0, 180);
-           // g.drawArc((int)(x1*zoom), (int)(yTop*zoom), (int)(width*zoom), (int)(height*zoom), 0, 180);
-
-//            g.setColor(Color.DARK_GRAY);
-//           g.drawRect((int)((x1-2)*zoom), (int)((yTop-2)*zoom), (int)((width+4)*zoom), (int)((height+4)*zoom));
-//           // g.drawRect((int)((x1)*zoom), (int)((yTop)*zoom), (int)((width)*zoom), (int)((height)*zoom));
-//            g.setColor(alternative?Color.RED:Color.BLACK);
-
+//          g.drawRect((int)((x1-2)*zoom), (int)((yTop-2)*zoom), (int)((width+4)*zoom), (int)((height+4)*zoom));
             g.drawArc((int)(x1*zoom), (int)(yTop*zoom), (int)(width*zoom), (int)(height*zoom),
                     slope>0 ?  10 : slope<0 ? 40 : 10,
                     slope>0 ? 130 : slope<0 ? 130 : 160);
-            g.drawArc((int)(x1*zoom), (int)(yTop*zoom)+1, (int)(width*zoom), (int)(height*zoom)+1,
-                    slope>0 ?  10 : slope<0 ? 40 : 10,
-                    slope>0 ? 130 : slope<0 ? 130 : 160);
+            g.setStroke(new BasicStroke((float)(1.4*zoom)));
+            g.drawArc((int)(x1*zoom), (int)(yTop*zoom), (int)(width*zoom), (int)(height*zoom),
+                    slope>0 ?  30 : slope<0 ? 60 : 40,
+                    slope>0 ? 90 : slope<0 ? 90 : 100);
         } else {
-        //    if (slope>0)
             yTop += 2*extraVerticalSpace;
-//            g.drawArc((int) (x1 * zoom),   (int) ((y1+0.25) * zoom),     (int) (width * zoom),  (int) (height * zoom), 0, -180);
-//            g.drawArc((int) ((x1-2)*zoom), (int)((y1)*zoom), (int)((width+4)*zoom), (int) ((height-1)*zoom), 0, -180);
-            // g.drawArc((int)(x1*zoom), (int)(y1*zoom), (int)(width*zoom), (int)(height*zoom), 0, -180);
-         //   g.drawRect((int)(x1*zoom), (int)(y1*zoom), (int)(width*zoom), (int)(height*zoom));
-            // g.drawArc((int)(x1*zoom), (int)(y1*zoom), (int)(width*zoom), (int)(height*zoom), 0, -180);
-//            g.drawRect((int)((x1-2)*zoom), (int)((yTop-2)*zoom), (int)((width+4)*zoom), (int)((height+4)*zoom));
+//          g.drawRect((int)((x1-2)*zoom), (int)((yTop-2)*zoom), (int)((width+4)*zoom), (int)((height+4)*zoom));
             g.drawArc((int)(x1*zoom), (int)(yTop*zoom), (int)(width*zoom), (int)(height*zoom),
                     slope>0 ?  -40 : slope<0 ? -10 : -10,
                     slope>0 ? -130 : slope<0 ? -130 : -160);
-            g.drawArc((int)(x1*zoom), (int)(yTop*zoom)-1, (int)(width*zoom), (int)(height*zoom)+2,
-                    slope>0 ?  -40 : slope<0 ? -10 : -10,
-                    slope>0 ? -130 : slope<0 ? -130 : -160);
+            g.setStroke(new BasicStroke((float)(1.4*zoom)));
+            g.drawArc((int)(x1*zoom), (int)(yTop*zoom), (int)(width*zoom), (int)(height*zoom),
+                    slope>0 ?  -60 : slope<0 ? -30 : -40,
+                    slope>0 ? -90 : slope<0 ? -90 : -100);
         }
         if (alternative) {
             g.setColor(Color.BLACK);
         }
+        g.setStroke(stroke);
     }
 
     private void init() {
-        // imageMap.put("background", getImage("paper4"));
         //
         // single size
         //

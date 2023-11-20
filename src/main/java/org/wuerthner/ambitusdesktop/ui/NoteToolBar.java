@@ -2,6 +2,7 @@ package org.wuerthner.ambitusdesktop.ui;
 
 import org.wuerthner.ambitus.model.Event;
 import org.wuerthner.ambitus.model.NoteEvent;
+import org.wuerthner.ambitus.model.SymbolEvent;
 import org.wuerthner.ambitusdesktop.*;
 import org.wuerthner.ambitusdesktop.score.AmbitusSelection;
 import org.wuerthner.cwn.api.CwnNoteEvent;
@@ -232,7 +233,7 @@ public class NoteToolBar {
         //
 
         toolbar2.addSeparator(new Dimension(20, 40));
-        toolbar2.add(new JLabel("Note Editor: "));
+        toolbar2.add(new JLabel("Parameter Editor: "));
         //
         JButton noteAttributesBtn = makeButton("toolbar/noteAttributes1", "Note Attributes",12);
         AbstractAction noteAttributesAction = new AbstractAction() {
@@ -240,6 +241,8 @@ public class NoteToolBar {
             public void actionPerformed(ActionEvent e) {
                 if (selectedEvent instanceof NoteEvent) {
                     new AttributeEditorNote((NoteEvent) selectedEvent, scoreModel, scoreUpdater).init(content);
+                } else if (selectedEvent instanceof SymbolEvent) {
+                    new AttributeEditorSymbol((SymbolEvent) selectedEvent, scoreModel, scoreUpdater).init(content);
                 }
 
             }
