@@ -2,6 +2,7 @@ package org.wuerthner.ambitusdesktop.ui;
 
 import org.wuerthner.ambitus.model.Arrangement;
 import org.wuerthner.ambitus.model.MidiTrack;
+import org.wuerthner.ambitus.model.SymbolEvent;
 import org.wuerthner.ambitus.template.Template;
 import org.wuerthner.ambitusdesktop.ScoreModel;
 import org.wuerthner.ambitusdesktop.ScorePanel;

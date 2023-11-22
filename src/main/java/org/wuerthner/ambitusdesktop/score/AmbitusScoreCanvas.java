@@ -311,8 +311,11 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
             imageMap.put("d-clef" + c + "-h", getImage("clef-d-" + c + "-h"));
         }
         imageMap.put("d-sharp", getImage("sgnSharp-d"));
+        imageMap.put("d-sharp-h", getImage("sgnSharp-d-h"));
         imageMap.put("d-flat", getImage("sgnFlat-d"));
+        imageMap.put("d-flat-h", getImage("sgnFlat-d-h"));
         imageMap.put("d-nat", getImage("sgnNat-d"));
+        imageMap.put("d-nat-h", getImage("sgnNat-d-h"));
         //
         imageMap.put("d-sign-2", getImage("sgnFlat2-d"));
         imageMap.put("d-sign-1", getImage("sgnFlat-d"));
@@ -365,8 +368,11 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
             imageMap.put("m-clef" + c + "-h", getImage("clef-m-" + c + "-h"));
         }
         imageMap.put("m-sharp", getImage("sgnSharp-m"));
+        imageMap.put("m-sharp-h", getImage("sgnSharp-m-h"));
         imageMap.put("m-flat", getImage("sgnFlat-m"));
+        imageMap.put("m-flat-h", getImage("sgnFlat-m-h"));
         imageMap.put("m-nat", getImage("sgnNat-m"));
+        imageMap.put("m-nat-h", getImage("sgnNat-m-h"));
         //
         imageMap.put("m-sign-2", getImage("sgnFlat2-m"));
         imageMap.put("m-sign-1", getImage("sgnFlat-m"));
