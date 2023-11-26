@@ -92,7 +92,7 @@ public class MidiDeviceHandler implements DeviceHandler {
                 sequencer.recordDisable(metronomeTrack);
                 sequencer.recordEnable(recordTrack, -1);
             }
-            dumpInfo();
+            // dumpInfo();
             Thread.sleep(sleep);
             if (record) {
                 sequencer.startRecording();

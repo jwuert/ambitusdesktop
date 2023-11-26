@@ -235,7 +235,7 @@ public class NoteToolBar {
         toolbar2.addSeparator(new Dimension(20, 40));
         toolbar2.add(new JLabel("Parameter Editor: "));
         //
-        JButton noteAttributesBtn = makeButton("toolbar/noteAttributes1", "Note Attributes",12);
+        JButton noteAttributesBtn = makeButton("toolbar/edit", "Note Attributes",12);
         AbstractAction noteAttributesAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {

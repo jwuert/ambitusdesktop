@@ -1,0 +1,11 @@
+Welcome to Music Typesetting with Ambitus
+
+Ambitus is a desktop application available for Windows and Linux, please follow the link in the description if you're interested.
+
+This tutorial covers the basic concepts to get you started with this program. So let's begin.
+
+On startup it shows keyboard shortcuts
+
+You can click anywhere into the window to create a new project.
+
+

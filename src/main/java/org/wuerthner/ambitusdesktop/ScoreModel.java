@@ -325,12 +325,18 @@ public class ScoreModel {
                 selection.set(symbol, staff, CwnSelection.SelectionType.NOTE, CwnSelection.SelectionSubType.NONE);
             } else {
                 // CREATE
+                int verticalOffset = 0;
+                int parameter = 0;
+                if (SymbolEvent.withinStaff(name)) {
+                    verticalOffset = relativeY;
+                    parameter = deltaY;
+                }
                 SymbolEvent symbolEvent = factory.createElement(SymbolEvent.TYPE);
                 symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.duration, duration);
                 symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.name, name);
                 symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.position, position);
-                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.verticalOffset, relativeY);
-                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.parameter, deltaY);
+                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.verticalOffset, verticalOffset);
+                symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.parameter, parameter);
                 symbolEvent.performTransientSetAttributeValueOperation(SymbolEvent.voice, voice);
                 arrangement.addEvent(track, symbolEvent);
 
@@ -521,7 +527,6 @@ public class ScoreModel {
     }
 
     public void select(Location fromPosition, Location toPosition, boolean notesOnly) {
-        System.out.println("notesOnly: " + notesOnly);
         long fromTick = fromPosition.position;
         long toTick = toPosition.position;
         List<ModelElement> eventList = new ArrayList<>();

@@ -117,7 +117,6 @@ public class ExportService {
     }
 
     private String executeCommand(String command) {
-        System.out.println(command);
         StringBuffer output = new StringBuffer();
         Process p;
         try {
