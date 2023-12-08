@@ -4,7 +4,7 @@ import org.wuerthner.cwn.api.CwnAccent;
 import org.wuerthner.cwn.api.CwnSymbolEvent;
 
 public enum NoteSelector {
-    N1, N2, N4, N8, N16, N32, N64, T1, T2, T3, T4, T5, T6, T7, V1, V2,
+    N1, N2, N4, N8, N16, N32, N64, T1, T2, T3, T4, T5, T6, T7, V1, V2, L1, L2, L3,
     Accent(CwnAccent.indexOf(CwnAccent.ACCENT_ACCENT), 1),
     DownBow(CwnAccent.indexOf(CwnAccent.ACCENT_DOWNBOW), 1),
     DownMordent(CwnAccent.indexOf(CwnAccent.ACCENT_DOWNMORDENT), 1),

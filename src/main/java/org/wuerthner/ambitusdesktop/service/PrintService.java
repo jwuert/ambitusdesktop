@@ -2,6 +2,7 @@ package org.wuerthner.ambitusdesktop.service;
 
 import org.wuerthner.ambitus.model.Arrangement;
 import org.wuerthner.ambitus.model.MidiTrack;
+import org.wuerthner.ambitusdesktop.ScoreModel;
 import org.wuerthner.cwn.api.CwnTrack;
 import org.wuerthner.cwn.api.DurationType;
 import org.wuerthner.cwn.api.ScoreParameter;
@@ -18,12 +19,12 @@ import java.util.stream.StreamSupport;
 public class PrintService {
     private static String WIN_PROGRAMFILES = System.getenv("programfiles");
 
-    public void print(Arrangement arrangement) {
+    public void print(Arrangement arrangement, ScoreModel scoreModel) {
         try {
             String fileBase = Long.toString(System.nanoTime());
             File lilypondFile = createOutputFile(fileBase, "ly");
             String pdfFilePrefix = new File(lilypondFile.getName().substring(0, lilypondFile.getName().length() - 3)).toString();
-            writeLilypond(lilypondFile, arrangement);
+            writeLilypond(lilypondFile, arrangement, scoreModel);
             BufferedReader br = null;
             if (isLinux()) {
                 br = exec("lilypond " + lilypondFile.getCanonicalPath(), "", lilypondFile.getParentFile());
@@ -55,7 +56,7 @@ public class PrintService {
         return file;
     }
 
-    private void writeLilypond(File outputFile, Arrangement arrangement) {
+    private void writeLilypond(File outputFile, Arrangement arrangement, ScoreModel scoreModel) {
         try {
             String title = arrangement.getAttributeValue(Arrangement.name);
             String subtitle = arrangement.getAttributeValue(Arrangement.subtitle);
@@ -69,7 +70,7 @@ public class PrintService {
             int groupLevel = arrangement.getAttributeValue(Arrangement.groupLevel);
             int stretchFactor = arrangement.getStretchFactor();
             int flags = arrangement.getFlags();
-            List<DurationType> typeList = arrangement.getDurations();
+            List<DurationType> typeList = scoreModel.getScoreParameter().durationTypeList;
             long endPosition = arrangement.findLastPositionBarStart();
             // ScoreParameter scoreParameter = new ScoreParameter(startDisplayPosition, endDisplayPosition, ppq, resolutionInTicks, groupLevel, stretchFactor, Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS);
             ScoreParameter scoreParameter = new ScoreParameter(ppq, resolutionInTicks, groupLevel, stretchFactor, flags,

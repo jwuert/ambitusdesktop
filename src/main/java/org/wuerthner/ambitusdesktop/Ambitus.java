@@ -85,6 +85,9 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
         if (playerToolBar!=null) {
             playerToolBar.updateToolbar();
         }
+        if (noteToolBar!=null) {
+            noteToolBar.updateToolbar();
+        }
     }
 
     public void updateNoteBar() {

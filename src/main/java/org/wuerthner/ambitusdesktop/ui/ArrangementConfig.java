@@ -13,7 +13,7 @@ public class ArrangementConfig {
         Arrangement arr = scoreModel.getArrangement();
         ParameterDialog pd = new ParameterDialog(new String[]{"Arrangement Configuration"},
                 new String[]{"Title", "Subtitle", "Composer", "PPQ", "Group Level", "Resolution",
-                        "Spacing", "Allow Dotted Rests", "Double Dotted Notes", "Doublets", "Triplets", "Quadruplets", "Quintuplets", "Sixtublets"},
+                        "Spacing", "Allow Dotted Rests", "Merge Rests in Empty Bars", "Double Dotted Notes"},
                 new Object[]{
                         arr.getAttributeValue(Arrangement.name, ""),
                         arr.getAttributeValue(Arrangement.subtitle, ""),
@@ -24,12 +24,8 @@ public class ArrangementConfig {
                         // ParameterDialog.makeCombo(Arrangement.TUPLET_PRESENTATION, arr.getAttributeValue(Arrangement.tupletPresentation)),
                         ParameterDialog.makeCombo(Arrangement.STRETCH_FACTORS, arr.getAttributeValue(Arrangement.stretchFactor)),
                         arr.getAttributeValue(Arrangement.flagAllowDottedRests),
-                        arr.getAttributeValue(Arrangement.durationBiDotted),
-                        arr.getAttributeValue(Arrangement.durationTuplet2),
-                        arr.getAttributeValue(Arrangement.durationTuplet3),
-                        arr.getAttributeValue(Arrangement.durationTuplet4),
-                        arr.getAttributeValue(Arrangement.durationTuplet5),
-                        arr.getAttributeValue(Arrangement.durationTuplet6)
+                        arr.getAttributeValue(Arrangement.flagMergeRestsInEmptyBars),
+                        arr.getAttributeValue(Arrangement.durationBiDotted)
                 },
                 content);
         String[] parameters = pd.getParameters();
@@ -42,13 +38,10 @@ public class ArrangementConfig {
             int resolution = ParameterDialog.get(Arrangement.GRIDS, parameters[5]);
             int stretchFac = ParameterDialog.get(Arrangement.STRETCH_FACTORS, parameters[6]);
             boolean dottedRests = Boolean.valueOf(parameters[7]);
-            boolean biDotted = Boolean.valueOf(parameters[8]);
-            boolean tuplet2 = Boolean.valueOf(parameters[9]);
-            boolean tuplet3 = Boolean.valueOf(parameters[10]);
-            boolean tuplet4 = Boolean.valueOf(parameters[11]);
-            boolean tuplet5 = Boolean.valueOf(parameters[12]);
-            boolean tuplet6 = Boolean.valueOf(parameters[13]);
-            arr.setConfiguration(title, subtitle, composer, ppq, level, resolution, stretchFac, dottedRests, biDotted, tuplet2, tuplet3, tuplet4, tuplet5, tuplet6);
+            boolean mergeRests = Boolean.valueOf(parameters[8]);
+            boolean biDotted = Boolean.valueOf(parameters[9]);
+            arr.setConfiguration(title, subtitle, composer, ppq, level, resolution, stretchFac, dottedRests, mergeRests, biDotted);
+            scoreModel.updateScoreParameter();
         }
     }
 }

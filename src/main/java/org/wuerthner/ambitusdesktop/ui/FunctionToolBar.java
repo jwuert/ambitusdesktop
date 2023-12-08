@@ -219,7 +219,7 @@ public class FunctionToolBar {
         AbstractAction printAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                printService.print(scoreModel.getArrangement());
+                printService.print(scoreModel.getArrangement(), scoreModel);
             }
         };
         printBtn.addActionListener(printAction);

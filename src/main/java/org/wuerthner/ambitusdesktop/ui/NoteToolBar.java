@@ -24,6 +24,7 @@ public class NoteToolBar {
     private ButtonGroup gridButtonGroup;
     private ButtonGroup tupletButtonGroup;
     private ButtonGroup voiceButtonGroup;
+    private ButtonGroup levelButtonGroup;
     private final ScoreModel scoreModel;
     private final ScoreUpdater scoreUpdater;
     private final ToolbarUpdater toolbarUpdater;
@@ -225,15 +226,9 @@ public class NoteToolBar {
             updateSelector(voiceButtonGroup, NoteSelector.V2);
         });
 
-        // default values
-        updateSelector(noteButtonGroup, scoreModel.getNoteSelector());
-        updateSelector(gridButtonGroup, scoreModel.getGridSelector());
-        updateSelector(tupletButtonGroup, scoreModel.getTupletSelector());
-        updateSelector(voiceButtonGroup, scoreModel.getVoiceSelector());
-        //
 
         toolbar2.addSeparator(new Dimension(20, 40));
-        toolbar2.add(new JLabel("Parameter Editor: "));
+        toolbar2.add(new JLabel("Editor: "));
         //
         JButton noteAttributesBtn = makeButton("toolbar/edit", "Note Attributes",12);
         AbstractAction noteAttributesAction = new AbstractAction() {
@@ -251,6 +246,45 @@ public class NoteToolBar {
         noteAttributesBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK), "Editor");
         noteAttributesBtn.getActionMap().put("Editor", noteAttributesAction);
         toolbar2.add(noteAttributesBtn);
+
+        //
+        // METRIC GROUP LEVEL
+        //
+        toolbar2.addSeparator(new Dimension(20, 40));
+        toolbar2.add(new JLabel("Group Level: "));
+
+        levelButtonGroup = new ButtonGroup();
+        JToggleButton levelBtn1 = makeGroupButton("images/buttons/v1", levelButtonGroup, NoteSelector.L1, toolbar2);
+        makeAction(levelBtn1, KeyEvent.VK_NUMPAD1, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            scoreModel.setLevelSelector(1);
+            updateSelector(levelButtonGroup, NoteSelector.L1);
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+
+        JToggleButton levelBtn2 = makeGroupButton("images/buttons/v2", levelButtonGroup, NoteSelector.L2, toolbar2);
+        makeAction(levelBtn2, KeyEvent.VK_NUMPAD2, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            scoreModel.setLevelSelector(2);
+            updateSelector(levelButtonGroup, NoteSelector.L2);
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+
+        JToggleButton levelBtn3 = makeGroupButton("images/buttons/v3", levelButtonGroup, NoteSelector.L3, toolbar2);
+        makeAction(levelBtn3, KeyEvent.VK_NUMPAD3, KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK, () -> {
+            scoreModel.setLevelSelector(3);
+            updateSelector(levelButtonGroup, NoteSelector.L3);
+            scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
+        });
+
+
+        // default values
+        updateSelector(noteButtonGroup, scoreModel.getNoteSelector());
+        updateSelector(gridButtonGroup, scoreModel.getGridSelector());
+        updateSelector(tupletButtonGroup, scoreModel.getTupletSelector());
+        updateSelector(voiceButtonGroup, scoreModel.getVoiceSelector());
+        int level = scoreModel.getGroupLevel();
+        updateSelector(levelButtonGroup, level==1 ? NoteSelector.L1 : level==2 ? NoteSelector.L2 : level==3 ? NoteSelector.L3 : NoteSelector.N1);
+        //
+
 
         // MARKUP
         toolbar2.addSeparator(new Dimension(20, 40));
@@ -527,5 +561,10 @@ public class NoteToolBar {
         flagBtn9.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.HARMONY));
         flagBtn10.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.RIEMANN));
         flagBtn11.setSelected(scoreModel.getScoreBuilder().getScoreParameter().markup.contains(Markup.Type.VELOCITY));
+    }
+
+    public void updateToolbar() {
+        int level = scoreModel.getGroupLevel();
+        updateSelector(levelButtonGroup, level==1 ? NoteSelector.L1 : level==2 ? NoteSelector.L2 : level==3 ? NoteSelector.L3 : NoteSelector.N1);
     }
 }

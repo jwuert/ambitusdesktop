@@ -79,21 +79,6 @@ public class ScoreModel {
         this.setFile(null);
     }
 
-    private ScoreParameter createScoreParameter(Arrangement arrangement) {
-        List<DurationType> durationTypeList = new ArrayList<>();
-        durationTypeList.add(DurationType.REGULAR);
-        durationTypeList.add(DurationType.DOTTED);
-        ScoreParameter scoreParameter = new ScoreParameter(
-                getPPQ(),
-                arrangement.getResolutionInTicks(),
-                arrangement.getAttributeValue(Arrangement.groupLevel),
-                arrangement.getStretchFactor(),
-                Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS,
-                durationTypeList,
-                new ArrayList<Markup.Type>(markup), 0);
-        return scoreParameter;
-    }
-
     public ScoreLayout getLayout() {
         return scoreLayout;
     }
@@ -225,6 +210,15 @@ public class ScoreModel {
     public NoteSelector getGridSelector() {
         return gridSelector;
     }
+
+    public void setLevelSelector(int level) {
+        if (arrangement!=null) {
+            arrangement.setGroupLevel(level);
+            updateScoreParameter();
+        }
+    }
+
+    public int getGroupLevel() { return (arrangement!=null ? arrangement.getGroupLevel() : 0); }
 
     public void setTupletSelector(NoteSelector tupletSelector) {
         this.tupletSelector = tupletSelector;
@@ -660,14 +654,28 @@ public class ScoreModel {
         this.setFile(null);
     }
 
+    private ScoreParameter createScoreParameter(Arrangement arrangement) {
+        List<DurationType> durationTypeList = new ArrayList<>();
+        durationTypeList.add(DurationType.REGULAR);
+        durationTypeList.add(DurationType.DOTTED);
+        durationTypeList.add(DurationType.BIDOTTED);
+        durationTypeList.add(DurationType.TRIDOTTED);
+        durationTypeList.add(DurationType.TRIPLET);
+        durationTypeList.add(DurationType.QUINTUPLET);
+        ScoreParameter scoreParameter = new ScoreParameter(
+                getPPQ(),
+                arrangement.getResolutionInTicks(),
+                arrangement.getAttributeValue(Arrangement.groupLevel),
+                arrangement.getStretchFactor(),
+                Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS | Score.MERGE_RESTS_IN_EMPTY_BARS,
+                durationTypeList,
+                new ArrayList<Markup.Type>(markup), 0);
+        return scoreParameter;
+    }
+
     public void updateScoreParameter() {
         if (arrangement != null) {
-            Boolean t2 = arrangement.getAttributeValue(Arrangement.durationTuplet2);
-            Boolean t3 = arrangement.getAttributeValue(Arrangement.durationTuplet3);
-            Boolean t4 = arrangement.getAttributeValue(Arrangement.durationTuplet4);
-            Boolean t5 = arrangement.getAttributeValue(Arrangement.durationTuplet5);
-            Boolean t6 = arrangement.getAttributeValue(Arrangement.durationTuplet6);
-            getScoreParameter().setTuplet(t2, t3, t4, t5, t6);
+            getScoreParameter().setFlags(arrangement.getFlags());
             int stretchFactor = arrangement.getStretchFactor();
             int groupLevel = arrangement.getAttributeValue(Arrangement.groupLevel);
             getScoreParameter().setDisplayStretchFactor(stretchFactor);
@@ -675,6 +683,16 @@ public class ScoreModel {
             getScoreParameter().setResolutionInTicks(arrangement.getResolutionInTicks());
             getScoreParameter().setPPQ(arrangement.getPPQ());
             getScoreParameter().setFilename(this.file == null ? "" : this.file.getName());
+            boolean bidotted = arrangement.getAttributeValue(Arrangement.durationBiDotted);
+            if (bidotted) {
+                if (!getScoreParameter().durationTypeList.contains(DurationType.BIDOTTED)) {
+                    getScoreParameter().durationTypeList.add(DurationType.BIDOTTED);
+                }
+            } else {
+                if (getScoreParameter().durationTypeList.contains(DurationType.BIDOTTED)) {
+                    getScoreParameter().durationTypeList.remove(DurationType.BIDOTTED);
+                }
+            }
         }
     }
 
@@ -701,4 +719,5 @@ public class ScoreModel {
     public void setPlayExpose(int playExpose) {
         this.playExpose = playExpose;
     }
+
 }

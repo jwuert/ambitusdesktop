@@ -4,8 +4,74 @@ Ambitus is a desktop application available for Windows and Linux, please follow 
 
 This tutorial covers the basic concepts to get you started with this program. So let's begin.
 
-On startup it shows keyboard shortcuts
+1. First steps
 
-You can click anywhere into the window to create a new project.
+- On startup it shows keyboard shortcuts
+- You can click anywhere into the window to create a new project.
+- Select "Violin + Piano", title: Paranoia
+- How do you know where to place the note inside the staff?
+  - The time is given by a three-component number (slide)
+  - The pitch is given by the vertical position within the staff. I can set a plain D
+    - SHIFT = sharp
+    - CNTRL = flat
+  - Also you can shift your note enharmonically by pressing CNTRL+b or CNTRL+#
+  - When I set a note which overlaps the duration of another note, the new note will be placed at the nearest free space, which means you don't have to worry about ovelap.
+  - Should you place the note too far, you can simply press CNTRL+LEFT arrow to move it to the left
+  - You can transpose a selection by pressing CNTRL+UP/DOWN
+  - You can use the arrow keys without any alteration to move the note cursor through the staff and PgUP/PgDOWN to move the staff cursor up and down
+  - Last but not least you can use SHFT+LEFT/RIGHT keys to increase and decrease the duration of the selected note
+  - Or you can press CNTRL+d and CNTRL+h to double the duration or divide it by two.
+  - You can press . to add a dot to the duration, i.e. adding half the duration, then a quarter, then an eigth
 
+2. The Player panel
+
+3. How to configure the arrangement, the staff, the bar
+
+4. The tool-bar
+   - file operations
+   - Properties
+   - track operations (add/delete)
+   - Lyrics
+   - Accents, Symbols
+     - Symbols above staff (8ve, 15ve, case 1, case 2)
+     - Symbols below staff (dynamics)
+     - Symbols within staff (Ties/Slurs)
+   - Chords and Harmonies
+   - Undo/Redo
+   - Select operations
+   - Functions
+     - Quantize
+     - Insert space
+     - Scale
+     - Transpose
+     - Clean Up?
+     - Auto Shift
+     - Velocity/Volume
+   - Layout size
+   - Bookmark
+   - Help
+   
+5. The note-bar
+   - Note
+   - Grid
+   - Tuplet
+   - Voice
+   - Editor
+   - Group Level
+   - Markup
+     - Ambitus
+     - Track attributes
+     - Selection attributes
+     - color voices
+   - toggle:
+     - parallels
+     - intervals
+     - crossings
+     - lyrics
+     - harmonies
+     - rieman functions
+     - velocities
+
+
+- parallel voice leading. parallel fifths/octaves and hidden parallel fifths/octaves
 
