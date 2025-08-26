@@ -11,6 +11,13 @@ version '1.3.0-SNAPSHOT'
 repositories {
     mavenLocal()
 	maven {
+        url = uri("https://maven.pkg.github.com/jwuert/ambitusmodel")
+        credentials {
+            username = System.getenv("GITHUB_ACTOR")
+            password = System.getenv("GITHUB_TOKEN")
+        }
+	}
+	maven {
         url = uri("https://maven.pkg.github.com/jwuert/score")
         credentials {
             username = System.getenv("GITHUB_ACTOR")
