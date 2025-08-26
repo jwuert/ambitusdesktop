@@ -1,0 +1,22 @@
+name: Make Installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      pVersion:
+        description: 'Version (x.y.z)'
+        default: 'tmp'
+        required: true
+        type: string
+      pYear:
+        description: 'Year'
+        default: '2025'
+        required: true
+        type: string
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Send greeting
+      run: echo "Create installer version ${{ inputs.pVersion }} - ${{ inputs.pYear }}"
