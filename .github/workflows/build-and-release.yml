@@ -1,0 +1,94 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GH_PACKA_GES_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build project and copy dependencies
+        run: |
+          ./gradlew build copyDependencies
+      - name: Prepare MANIFEST and Release Type
+        run: |
+          export year=`date +%Y`
+          export version=`ls build/libs/* | sed 's/.*ambitusdesktop-\(.*\).jar/\1/'`
+          if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
+            mkdir input
+            cp build/libs/*.jar input/
+            cp build/dependencies/*.jar input/
+            echo "Create installer version $version - $year"
+            echo "- create manifest..."
+            echo "Manifest-Version: 1.0" > MANIFEST.MF
+            echo "Main-Class: org.wuerthner.ambitusdesktop.Ambitus" >> MANIFEST.MF
+            echo "Implementation-Version: $version" >> MANIFEST.MF
+            echo "CopyrightYear: $year" >> MANIFEST.MF
+            echo "- update jar file..."
+            jar -ufm "input/ambitusdesktop-$version.jar" MANIFEST.MF
+            echo "- package linux version..."
+            jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
+            export name=`ls output/ambitus*.deb | sed 's/.*\(ambitus.*deb\)/\1/'`
+            echo "- output: $name"
+            ls -lR output
+          else
+            echo "Invalid version number: $version"
+            exit;
+          fi
+          echo "version=$version" >> $GITHUB_ENV
+          if [[ "$version" == *SNAPSHOT* ]]; then
+            echo "prerelease=true" >> $GITHUB_ENV
+          else
+            echo "prerelease=false" >> $GITHUB_ENV
+          fi
+      - name: Fix Debian dependencies
+        run: |
+          mkdir tmp
+          dpkg-deb -R output/*.deb tmp
+          sed -i '/^Depends:/c\Depends: default-jre' tmp/DEBIAN/control
+          rm output/*.deb
+          dpkg-deb -b tmp output/ambitus-$version.deb
+          rm -rf tmp
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ambitus
+          path: output/ambitus-$version.deb
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: output/ambitus-$version.deb
+          tag_name: ambitus-$version
+          name: ambitus-$version
+          prerelease: ${{ env.prerelease }}
+
+  dependency-submission:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
