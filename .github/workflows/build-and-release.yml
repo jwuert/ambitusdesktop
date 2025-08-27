@@ -74,7 +74,7 @@ jobs:
         with:
           files: output/ambitus-${{ env.version }}.deb
           tag_name: ambitus-${{ env.version }}
-          name: ambitus-$version
+          name: ambitus-${{ env.version }}
           prerelease: ${{ env.prerelease }}
 
   dependency-submission:
