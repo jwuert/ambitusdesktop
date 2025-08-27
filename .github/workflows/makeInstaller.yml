@@ -55,7 +55,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: ambitus
-          path: output/$name
+          path: output/*.deb
 
   dependency-submission:
 
