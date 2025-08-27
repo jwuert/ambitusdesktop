@@ -43,7 +43,7 @@ jobs:
           echo "- update jar file..."
           jar -ufm "input/ambitusdesktop-$version.jar" MANIFEST.MF
           echo "- package linux version..."
-          jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
+          jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-package-deps "" --linux-shortcut
           export name=`ls output/ambitus*.deb | sed 's/.*\(ambitus.*deb\)/\1/'`
           echo "- output: $name"
           ls -lR output
