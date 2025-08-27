@@ -2,15 +2,9 @@ name: Make Installer
 
 on:
   workflow_dispatch:
-    inputs:
-      pVersion:
-        description: 'Version (x.y.z)'
-        default: '0.0.0'
-        required: true
-        type: string
 
 jobs:
-  build-installer:
+  linux-debian-installer:
   
     runs-on: ubuntu-latest
     permissions:
@@ -30,17 +24,52 @@ jobs:
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
     - name: Build with Gradle Wrapper
-      run: ./gradlew build
+      run: ./gradlew build copyDependencies
 
     - name: Publish to GitHub Packages
       run: |
         export year=`date +%Y`
-        ls -laR
-        mkdir pkg
-        cd pkg
-        echo "Create installer version ${{ inputs.pVersion }} - ${{ inputs.pYear }}"
-        echo "Manifest-Version: 1.0" > MANIFEST.MF
-        echo "Main-Class: org.wuerthner.ambitusdesktop.Ambitus" >> MANIFEST.MF
-        echo "Implementation-Version: ${{ inputs.pVersion }}" >> MANIFEST.MF
-        echo "CopyrightYear: $year" >> MANIFEST.MF
-        cat MANIFEST.MF
+        export version=`ls libs/* | sed 's/.*ambitusdesktop-\(.*\).jar/\1/'`
+        if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
+          mkdir output
+          cp build/libs/*.jar output/
+          cp build/dependencies/*.jar output/
+          echo "Create installer version $version - $year"
+          echo "- create manifest..."
+          echo "Manifest-Version: 1.0" > MANIFEST.MF
+          echo "Main-Class: org.wuerthner.ambitusdesktop.Ambitus" >> MANIFEST.MF
+          echo "Implementation-Version: $version" >> MANIFEST.MF
+          echo "CopyrightYear: $year" >> MANIFEST.MF
+          echo "- update jar file..."
+          jar -ufm "output/ambitusdesktop-$version.jar" MANIFEST.MF
+          echo "- package linux version..."
+          jpackage --input output --resource-dir output --dest "linux-$1" -n "Ambitus" --main-jar "output/ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
+          echo "### DIRECTORY###"
+          ls -laR
+          ;
+        else
+          echo "Invalid version number: $version"
+          exit;
+        fi
+    - name: Upload bundle as artifact
+      uses: actions/upload-artifact@v4
+      with:
+          name: ambitus
+          path: ambitus*.deb
+
+  dependency-submission:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
