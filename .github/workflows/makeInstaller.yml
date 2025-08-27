@@ -30,8 +30,6 @@ jobs:
       run: |
         export year=`date +%Y`
         export version=`ls build/libs/* | sed 's/.*ambitusdesktop-\(.*\).jar/\1/'`
-        echo "### DIRECTORY###"
-        ls -laR
         if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
           mkdir output
           cp build/libs/*.jar output/
@@ -44,10 +42,10 @@ jobs:
           echo "CopyrightYear: $year" >> MANIFEST.MF
           echo "- update jar file..."
           jar -ufm "output/ambitusdesktop-$version.jar" MANIFEST.MF
-          echo "- package linux version..."
-          jpackage --input output --resource-dir output --dest "linux-$1" -n "Ambitus" --main-jar "output/ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
           echo "### DIRECTORY###"
           ls -laR
+          echo "- package linux version..."
+          jpackage --input output --resource-dir output --dest "linux-$1" -n "Ambitus" --main-jar "output/ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
         else
           echo "Invalid version number: $version"
           exit;
