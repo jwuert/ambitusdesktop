@@ -45,7 +45,7 @@ jobs:
           echo "### DIRECTORY###"
           ls -laR
           echo "- package linux version..."
-          jpackage --input output --resource-dir output --dest "linux-$1" -n "Ambitus" --main-jar "output/ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
+          jpackage --input output --resource-dir output --dest "linux-$1" -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
         else
           echo "Invalid version number: $version"
           exit;
