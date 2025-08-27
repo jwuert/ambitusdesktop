@@ -31,9 +31,9 @@ jobs:
         export year=`date +%Y`
         export version=`ls build/libs/* | sed 's/.*ambitusdesktop-\(.*\).jar/\1/'`
         if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
-          mkdir output
-          cp build/libs/*.jar output/
-          cp build/dependencies/*.jar output/
+          mkdir input
+          cp build/libs/*.jar input/
+          cp build/dependencies/*.jar input/
           echo "Create installer version $version - $year"
           echo "- create manifest..."
           echo "Manifest-Version: 1.0" > MANIFEST.MF
@@ -41,11 +41,12 @@ jobs:
           echo "Implementation-Version: $version" >> MANIFEST.MF
           echo "CopyrightYear: $year" >> MANIFEST.MF
           echo "- update jar file..."
-          jar -ufm "output/ambitusdesktop-$version.jar" MANIFEST.MF
+          jar -ufm "input/ambitusdesktop-$version.jar" MANIFEST.MF
           echo "- package linux version..."
-          jpackage --input output --resource-dir output --dest "linux-$1" -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
-          echo "### DIRECTORY###"
-          ls -lR
+          jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
+          export name=`ls output/ambitus*.deb | sed 's/.*\(ambitus.*deb\)/\1/'`
+          echo "- output: $name"
+          ls -lR output
         else
           echo "Invalid version number: $version"
           exit;
@@ -54,7 +55,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: ambitus
-          path: ambitus*.deb
+          path: output/$name
 
   dependency-submission:
 
