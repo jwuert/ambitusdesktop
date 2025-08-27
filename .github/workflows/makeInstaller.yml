@@ -43,7 +43,7 @@ jobs:
           echo "- update jar file..."
           jar -ufm "input/ambitusdesktop-$version.jar" MANIFEST.MF
           echo "- package linux version..."
-          jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-package-deps "" --linux-shortcut
+          jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
           export name=`ls output/ambitus*.deb | sed 's/.*\(ambitus.*deb\)/\1/'`
           echo "- output: $name"
           ls -lR output
@@ -51,11 +51,24 @@ jobs:
           echo "Invalid version number: $version"
           exit;
         fi
-    - name: Upload bundle as artifact
+    - name: Fix Debian dependencies
+      run: |
+        mkdir tmp
+        dpkg-deb -R output/*.deb tmp
+        echo "Original control file:"
+        cat tmp/DEBIAN/control
+        sed -i '/^Depends:/c\Depends: default-jre' tmp/DEBIAN/control
+        echo "Modified control file:"
+        cat tmp/DEBIAN/control
+        fixed_deb="output/ambitus-fixed.deb"
+        dpkg-deb -b tmp "$fixed_deb"
+        rm -rf tmp
+        echo "Fixed deb created at $fixed_deb"
+    - name: Upload fixed bundle as artifact
       uses: actions/upload-artifact@v4
       with:
-          name: ambitus
-          path: output/*.deb
+        name: ambitus
+        path: output/ambitus-fixed.deb
 
   dependency-submission:
 
