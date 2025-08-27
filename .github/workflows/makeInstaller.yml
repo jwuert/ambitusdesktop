@@ -30,6 +30,8 @@ jobs:
       run: |
         export year=`date +%Y`
         export version=`ls libs/* | sed 's/.*ambitusdesktop-\(.*\).jar/\1/'`
+        echo "### DIRECTORY###"
+        ls -laR
         if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
           mkdir output
           cp build/libs/*.jar output/
