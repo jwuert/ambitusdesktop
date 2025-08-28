@@ -25,6 +25,8 @@ jobs:
       - name: Build project and copy dependencies
         run: |
           ./gradlew build copyDependencies
+      - name: Install rpm tools
+        run: sudo apt-get update && sudo apt-get install -y rpm
       - name: Prepare MANIFEST and Release Type
         run: |
           export year=`date +%Y`
@@ -53,6 +55,7 @@ jobs:
             ls -lR output
             mv output/$debname output/ambitus-$version.deb
             mv output/$rpmname output/ambitus-$version.rpm
+            ls -lR output
           else
             echo "Invalid version number: $version"
             exit;
