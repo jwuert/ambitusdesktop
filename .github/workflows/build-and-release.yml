@@ -55,8 +55,10 @@ jobs:
             jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" \
               --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
             echo "- package linux rpm version..."
+            rpm_version=$(echo "$version" | sed 's/-SNAPSHOT/.snapshot/')
+            echo "  $rpm_version";
             jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" \
-              --main-class org.wuerthner.ambitusdesktop.Ambitus --type rpm --app-version "$version" --linux-shortcut \
+              --main-class org.wuerthner.ambitusdesktop.Ambitus --type rpm --app-version "$rpm_version" --linux-shortcut \
                || { echo "=== rpmbuild.log ==="; cat /tmp/jdk.jpackage*/SPECS/ambitus.spec || true; exit 1; }
             export debname=`ls output/ambitus*.deb | sed 's/.*\(ambitus.*deb\)/\1/'`
             export rpmname=`ls output/ambitus*.rpm | sed 's/.*\(ambitus.*rpm\)/\1/'`
