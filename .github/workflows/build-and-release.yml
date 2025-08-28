@@ -43,9 +43,13 @@ jobs:
             jar -ufm "input/ambitusdesktop-$version.jar" MANIFEST.MF
             echo "- package linux version..."
             jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut
-            export name=`ls output/ambitus*.deb | sed 's/.*\(ambitus.*deb\)/\1/'`
-            echo "- output: $name"
+            jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" --main-class org.wuerthner.ambitusdesktop.Ambitus --type rpm --app-version "$version" --linux-shortcut
+            export debname=`ls output/ambitus*.deb | sed 's/.*\(ambitus.*deb\)/\1/'`
+            export rpmname=`ls output/ambitus*.rpm | sed 's/.*\(ambitus.*rpm\)/\1/'`
+            echo "- output: debian: $debname, rpm: $rpmname"
             ls -lR output
+            mv output/$debname output/ambitus-$version.deb
+            mv output/$rpmname output/ambitus-$version.rpm
           else
             echo "Invalid version number: $version"
             exit;
@@ -67,12 +71,19 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ambitus
+          name: ambitus-debian
           path: output/ambitus-${{ env.version }}.deb
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ambitus-rpm
+          path: output/ambitus-${{ env.version }}.rpm
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: output/ambitus-${{ env.version }}.deb
+          files: |
+            output/ambitus-${{ env.version }}.deb
+            output/ambitus-${{ env.version }}.rpm
           tag_name: ambitus-${{ env.version }}
           name: ambitus-${{ env.version }}
           prerelease: ${{ env.prerelease }}
