@@ -26,7 +26,7 @@ jobs:
         run: |
           ./gradlew build copyDependencies
       - name: Install rpm tools
-        run: sudo apt-get update && sudo apt-get install -y rpm
+        run: sudo apt-get update && sudo apt-get install -y rpm rpm2cpio cpio
       - name: Prepare MANIFEST and Release Type
         run: |
           export year=`date +%Y`
