@@ -130,7 +130,7 @@ jobs:
 
       - name: Package Windows installer
         run: |
-          jpackage --input build/libs --dest output -n Ambitus --main-jar "ambitusdesktop-"${env:version}".jar" `
+          jpackage --input build/libs --dest output -n Ambitus --main-jar "ambitusdesktop-${env:version}.jar" `
             --main-class org.wuerthner.ambitusdesktop.Ambitus --app-version "${env:norm_version}" --type msi --vendor "Ambitus Open Source"
 
       - name: Upload Windows installer
