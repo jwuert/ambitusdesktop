@@ -93,11 +93,17 @@ jobs:
           dpkg-deb -b tmp output/ambitus-$version.deb
           rm -rf tmp
           
-      - name: Upload Linux Installers
+      - name: Upload Linux Debian Installer
         uses: actions/upload-artifact@v4
         with:
-          name: linux-installers
-          path: output/ambitus-*.{deb,rpm}
+          name: ambitus-debian
+          path: output/ambitus-$version.deb
+          
+      - name: Upload Linux RPM Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ambitus-rpm
+          path: output/ambitus-$version.rpm
 
   build-windows:
     runs-on: windows-latest
@@ -152,6 +158,18 @@ jobs:
         with:
           path: output
 
+      - name: Determine release type
+        run: |
+          file=$(ls output/*/*.deb | head -n 1)
+          version=$(echo "$file" | sed 's/.*mbitus-//' | sed 's/\.[^.]*$//')
+          echo "version=$version" >> $GITHUB_ENV
+          echo "version: $version"
+          if [[ "$version" == *SNAPSHOT* ]]; then
+            echo "prerelease=true" >> $GITHUB_ENV
+          else
+            echo "prerelease=false" >> $GITHUB_ENV
+          fi
+          
       - name: verify
         run: |
           echo "Verify content..."
