@@ -130,7 +130,7 @@ jobs:
 
       - name: Package Windows installer
         run: |
-          jpackage --input build/libs --dest output -n Ambitus --main-jar ambitusdesktop-${{ env.version }}.jar --main-class org.wuerthner.ambitusdesktop.Ambitus --app-version $norm_version --vendor AmbitusOpenSource --type msi
+          jpackage --input build/libs --dest output -n Ambitus --main-jar ambitusdesktop-${{ env.version }}.jar --main-class org.wuerthner.ambitusdesktop.Ambitus --app-version $norm_version --type msi
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
