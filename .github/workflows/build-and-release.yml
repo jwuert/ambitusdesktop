@@ -46,6 +46,8 @@ jobs:
             echo "CopyrightYear: $year" >> MANIFEST.MF
             echo "- update jar file..."
             jar -ufm "input/ambitusdesktop-$version.jar" MANIFEST.MF
+            echo "version=$version" >> $GITHUB_ENV
+            echo "version=$version"
           else
             echo "Invalid version number: $version"
             exit;
@@ -70,7 +72,7 @@ jobs:
           mv output/$debname output/ambitus-$version.deb
           mv output/$rpmname output/ambitus-$version.rpm
           ls -lR output
-          echo "version=$version" >> $GITHUB_ENV
+          
           if [[ "$version" == *SNAPSHOT* ]]; then
             echo "prerelease=true" >> $GITHUB_ENV
           else
