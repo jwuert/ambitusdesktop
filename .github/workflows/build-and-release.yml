@@ -137,7 +137,7 @@ jobs:
             --main-jar ambitusdesktop-${{ env.version }}.jar `
             --main-class org.wuerthner.ambitusdesktop.Ambitus `
             --app-version $norm_version  `
-            --vendor "Ambitus Open Source" `
+            --vendor "AmbitusOpenSource" `
             --type msi
 
       - name: Upload Windows installer
