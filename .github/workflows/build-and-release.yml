@@ -27,6 +27,7 @@ jobs:
       - name: Build project and copy dependencies
         run: |
           ./gradlew build copyDependencies
+          
       - name: Install rpm build tools
         run: sudo apt-get update && sudo apt-get install -y rpm
 
@@ -48,6 +49,9 @@ jobs:
             jar -ufm "input/ambitusdesktop-$version.jar" MANIFEST.MF
             echo "version=$version" >> $GITHUB_ENV
             echo "version=$version"
+            norm_version=$(echo "$version" | sed 's/[-].*//')
+            echo "norm_version=$norm_version" >> $GITHUB_ENV
+            echo "Normalized version: $norm_version"
           else
             echo "Invalid version number: $version"
             exit;
@@ -55,16 +59,17 @@ jobs:
       - name: Package Linux installers
         run: |
           echo "- package linux debian version..."
-          jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" \
-            --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb --app-version "$version" --linux-shortcut \
+          jpackage --input input --resource-dir input --dest output \
+            -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" \
+            --main-class org.wuerthner.ambitusdesktop.Ambitus --type deb \
+            --app-version "$norm_version" --linux-shortcut \
             --vendor "Ambitus Open Source"
           echo "- package linux rpm version..."
-          rpm_version=$(echo "$version" | sed 's/-SNAPSHOT/.snapshot/')
-          echo "  $rpm_version";
-          jpackage --input input --resource-dir input --dest output -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" \
-            --main-class org.wuerthner.ambitusdesktop.Ambitus --type rpm --app-version "$rpm_version" --linux-shortcut \
-            --vendor "Ambitus Open Source" \
-             || { echo "=== rpmbuild.log ==="; cat /tmp/jdk.jpackage*/SPECS/ambitus.spec || true; exit 1; }
+          jpackage --input input --resource-dir input --dest output \
+            -n "Ambitus" --main-jar "ambitusdesktop-$version.jar" \
+            --main-class org.wuerthner.ambitusdesktop.Ambitus --type rpm \
+            --app-version "$norm_version" --linux-shortcut \
+            --vendor "Ambitus Open Source"
           export debname=`ls output/ambitus*.deb | sed 's/.*\(ambitus.*deb\)/\1/'`
           export rpmname=`ls output/ambitus*.rpm | sed 's/.*\(ambitus.*rpm\)/\1/'`
           echo "- output: debian: $debname, rpm: $rpmname"
@@ -92,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-installers
-          path: output/ambitus-${{ env.version }}.{deb,rpm}
+          path: output/ambitus-*.{deb,rpm}
 
   build-windows:
     runs-on: windows-latest
@@ -120,6 +125,8 @@ jobs:
         run: |
           version=$(ls build/libs/* | sed 's/.*ambitusdesktop-\(.*\).jar/\1/')
           echo "version=$version" >> $GITHUB_ENV
+          norm_version=$(echo "$version" | sed 's/[-].*//')
+          echo "norm_version=$norm_version" >> $GITHUB_ENV
 
       - name: Package Windows installer
         run: |
@@ -129,7 +136,7 @@ jobs:
             -n "Ambitus" `
             --main-jar ambitusdesktop-${{ env.version }}.jar `
             --main-class org.wuerthner.ambitusdesktop.Ambitus `
-            --app-version ${{ env.version }} `
+            --app-version $norm_version  `
             --vendor "Ambitus Open Source" `
             --type msi
 
