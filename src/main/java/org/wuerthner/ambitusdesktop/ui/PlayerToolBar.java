@@ -27,6 +27,7 @@ public class PlayerToolBar implements PositionUpdater {
     public PlayerToolBar(ScoreModel scoreModel, ScoreUpdater scoreUpdater, ToolbarUpdater toolbarUpdater, JPanel content) {
         this.scoreModel = scoreModel;
         JToolBar playerToolbar = new JToolBar();
+
         // Rewind
         JButton firstBtn = makeButton("toolbar/first", "Rewind", 24);
         AbstractAction firstAction = new AbstractAction() {
@@ -137,6 +138,47 @@ public class PlayerToolBar implements PositionUpdater {
         lastBtn.getActionMap().put("last", lastAction);
         toolMap.put("last", lastBtn);
         playerToolbar.add(lastBtn);
+
+        // Set Caret
+        JButton caretBtn = makeButton("toolbar/caret", "Set Caret", 24);
+        AbstractAction caretAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                long pos = 0;
+                List<org.wuerthner.ambitus.model.Event> list = scoreModel.getSelection().getSelection();
+                if (list.isEmpty()) {
+                    pos = scoreModel.getArrangement().getBarOffsetPosition();
+                } else {
+                    pos = list.get(0).getPosition();
+                }
+                scoreModel.getArrangement().setTransientCaret(pos);
+                scoreModel.getScoreParameter().setCaret(scoreModel.getArrangement().getCaret());
+                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+                updateToolbar();
+                updatePosition();
+            }
+        };
+        caretBtn.addActionListener(caretAction);
+        // caretBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, KeyEvent.ALT_DOWN_MASK), "caret");
+        caretBtn.getActionMap().put("caret", caretAction);
+        toolMap.put("caret", caretBtn);
+        playerToolbar.add(caretBtn);
+
+        // Jump to Caret
+        JButton rewindToCaretBtn = makeButton("toolbar/rewindToCaret", "Rewind to Caret", 24);
+        AbstractAction rewindToCaretAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                scoreModel.getArrangement().setTransientBarOffsetPosition(scoreModel.getArrangement().getCaret());
+                scoreModel.getScoreParameter().setBarOffset(scoreModel.getArrangement().getBarOffset());
+                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+                updateToolbar();
+                updatePosition();
+            }
+        };
+        rewindToCaretBtn.addActionListener(rewindToCaretAction);
+        // rewindToCaretBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, KeyEvent.ALT_DOWN_MASK), "rewindToCaret");
+        rewindToCaretBtn.getActionMap().put("rewindToCaret", rewindToCaretAction);
+        toolMap.put("rewindToCaret", rewindToCaretBtn);
+        playerToolbar.add(rewindToCaretBtn);
 
         // Stop
         JButton stopBtn = makeButton("toolbar/stop", "Stop",24);

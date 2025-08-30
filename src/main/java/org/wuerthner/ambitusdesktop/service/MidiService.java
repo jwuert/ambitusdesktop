@@ -43,7 +43,7 @@ public class MidiService {
     public void play(Arrangement arrangement, AmbitusSelection selection, boolean selectionOnly, boolean record, int tempo, int exposedTrack, int exposedStrength) {
         if (!arrangement.getActiveMidiTrackList().isEmpty()) {
 
-            long startPosition = arrangement.getBarOffsetPosition();
+            long startPosition = arrangement.getCaret();
             long endPosition = 99999999999999L;
             if (selectionOnly && !selection.getSelection().isEmpty()) {
                 startPosition = selection.getSelection().get(0).getPosition();

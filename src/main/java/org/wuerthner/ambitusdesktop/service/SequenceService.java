@@ -25,7 +25,8 @@ public class SequenceService {
             sequence = new Sequence(Sequence.PPQ, arrangement.getPPQ());
             Track tempoTrack = sequence.createTrack();
             List<CwnTrack> trackList = arrangement.getTrackList();
-            startPosition = PositionTools.getPosition(arrangement.getFirstActiveMidiTrack().get(), new Trias(arrangement.getBarOffset(),0,0));
+            // startPosition = PositionTools.getPosition(arrangement.getFirstActiveMidiTrack().get(), new Trias(arrangement.getBarOffset(),0,0));
+            startPosition = arrangement.getCaret();
             for (int trackNo = 0; trackNo < trackList.size(); trackNo++) {
                 if (trackList.get(trackNo) instanceof MidiTrack) {
                     MidiTrack midiTrack = (MidiTrack) trackList.get(trackNo);

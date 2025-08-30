@@ -43,7 +43,7 @@ public class PrintService {
                 br = exec(lilypond + " " + lilypondFile.getCanonicalPath(), "", lilypondFile.getParentFile());
             } else if (isWindows()) {
                 String lilypond = ambitusConfig.getProperty("lilypond",
-                        "\"C:\\" + WIN_PROGRAMFILES + "\\lilypond\\bin\\lilypond.exe\"");
+                        "\"" + WIN_PROGRAMFILES + "\\lilypond\\bin\\lilypond.exe\"");
                 System.out.println("program files: " + WIN_PROGRAMFILES);
                 System.out.println("lilypond: " + lilypond);
                 br = exec(lilypond + " -dgui " + lilypondFile.getCanonicalPath(), "", lilypondFile.getParentFile());
@@ -57,7 +57,7 @@ public class PrintService {
                 Runtime.getRuntime().exec(pdfreader + " " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null, lilypondFile.getParentFile());
             } else if (isWindows()) {
                 String pdfreader = ambitusConfig.getProperty("pdfreader",
-                        "\"C:\\" + WIN_PROGRAMFILES + "\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe\"");
+                        "\"" + WIN_PROGRAMFILES + "\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe\"");
                 System.out.println("pdfreader:  " + pdfreader);
                 Runtime.getRuntime().exec(pdfreader + " " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null,
                         lilypondFile.getParentFile());
@@ -92,7 +92,7 @@ public class PrintService {
             long endPosition = arrangement.findLastPositionBarStart();
             // ScoreParameter scoreParameter = new ScoreParameter(startDisplayPosition, endDisplayPosition, ppq, resolutionInTicks, groupLevel, stretchFactor, Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS);
             ScoreParameter scoreParameter = new ScoreParameter(ppq, resolutionInTicks, groupLevel, stretchFactor, flags,
-                    typeList, new ArrayList<>(), 0);
+                    typeList, new ArrayList<>(), 0, arrangement.getCaret());
 
             ScorePrinter printer = new ScorePrinter();
             String lyString = printer.print(title, subtitle, composer, autoBeam, scoreParameter, trackList, endPosition);
