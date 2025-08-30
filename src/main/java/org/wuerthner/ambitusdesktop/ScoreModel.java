@@ -669,7 +669,7 @@ public class ScoreModel {
                 arrangement.getStretchFactor(),
                 Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS | Score.MERGE_RESTS_IN_EMPTY_BARS,
                 durationTypeList,
-                new ArrayList<Markup.Type>(markup), 0);
+                new ArrayList<Markup.Type>(markup), 0, arrangement.getCaret());
         return scoreParameter;
     }
 
