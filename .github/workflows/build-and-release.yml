@@ -129,7 +129,7 @@ jobs:
           java-version: 17
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build copyDependencies
 
       - name: Extract version from JAR
         shell: bash
