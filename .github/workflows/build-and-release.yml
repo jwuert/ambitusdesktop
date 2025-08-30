@@ -137,13 +137,14 @@ jobs:
       - name: Package Windows installer
         run: |
           jpackage --input build/libs --dest output -n Ambitus --main-jar "ambitusdesktop-${env:version}.jar" `
-            --main-class org.wuerthner.ambitusdesktop.Ambitus --app-version "${env:norm_version}" --type msi --vendor "Ambitus Open Source"
+            --main-class org.wuerthner.ambitusdesktop.Ambitus --app-version "${env:norm_version}" --type exe --vendor "Ambitus Open Source" `
+            --win-dir-chooser --win-menu --win-shortcut-prompt
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: output/*.msi
+          path: output/*.exe
 
   release:
     runs-on: ubuntu-latest
