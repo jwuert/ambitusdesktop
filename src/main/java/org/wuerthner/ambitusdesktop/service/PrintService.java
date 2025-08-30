@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.stream.StreamSupport;
 
 public class PrintService {
@@ -21,27 +22,44 @@ public class PrintService {
 
     public void print(Arrangement arrangement, ScoreModel scoreModel) {
         try {
+            Properties ambitusConfig = new Properties();
+            File userDir = new File(System.getProperties().getProperty("user.dir"));
+            if (userDir.exists() && userDir.isDirectory()) {
+                File ambitusConfigPath = new File(userDir, "ambitus.conf");
+                if (ambitusConfigPath.exists()) {
+                    ambitusConfig.load(new FileInputStream(ambitusConfigPath));
+                }
+            }
+            System.out.println("userDir: " + userDir);
+            System.out.println("config: " + ambitusConfig);
+
             String fileBase = Long.toString(System.nanoTime());
             File lilypondFile = createOutputFile(fileBase, "ly");
             String pdfFilePrefix = new File(lilypondFile.getName().substring(0, lilypondFile.getName().length() - 3)).toString();
             writeLilypond(lilypondFile, arrangement, scoreModel);
             BufferedReader br = null;
             if (isLinux()) {
-                br = exec("lilypond " + lilypondFile.getCanonicalPath(), "", lilypondFile.getParentFile());
+                String lilypond = ambitusConfig.getProperty("lilypond", "lilypond");
+                br = exec(lilypond + " " + lilypondFile.getCanonicalPath(), "", lilypondFile.getParentFile());
             } else if (isWindows()) {
+                String lilypond = ambitusConfig.getProperty("lilypond",
+                        "\"C:\\" + WIN_PROGRAMFILES + "\\lilypond\\bin\\lilypond.exe\"");
                 System.out.println("program files: " + WIN_PROGRAMFILES);
-                System.out.println(" lilypond: " + "C:\\" + WIN_PROGRAMFILES + "\\LilyPond\\usr\\bin\\lilypond-windows.exe");
-                br = exec("\"C:\\" + WIN_PROGRAMFILES + "\\LilyPond\\usr\\bin\\lilypond-windows.exe\" -dgui " + lilypondFile.getCanonicalPath(), "", lilypondFile.getParentFile());
+                System.out.println("lilypond: " + lilypond);
+                br = exec(lilypond + " -dgui " + lilypondFile.getCanonicalPath(), "", lilypondFile.getParentFile());
             }
             String line;
             while ((line = br.readLine()) != null) {
                 System.out.println("lilypond: " + line);
             }
             if (isLinux()) {
-                Runtime.getRuntime().exec("evince " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null, lilypondFile.getParentFile());
+                String pdfreader = ambitusConfig.getProperty("pdfreader", "evince");
+                Runtime.getRuntime().exec(pdfreader + " " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null, lilypondFile.getParentFile());
             } else if (isWindows()) {
-                System.out.println(" acrobat:  " + "C:\\" + WIN_PROGRAMFILES + "\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe");
-                Runtime.getRuntime().exec("C:\\" + WIN_PROGRAMFILES + "\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null,
+                String pdfreader = ambitusConfig.getProperty("pdfreader",
+                        "\"C:\\" + WIN_PROGRAMFILES + "\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe\"");
+                System.out.println("pdfreader:  " + pdfreader);
+                Runtime.getRuntime().exec(pdfreader + " " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null,
                         lilypondFile.getParentFile());
 
                 Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + new File(lilypondFile.getParentFile(), pdfFilePrefix + ".pdf").getCanonicalPath(), null, lilypondFile.getParentFile());
