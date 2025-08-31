@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'org.wuerthner.ambitus'
-version '1.3.0-SNAPSHOT'
+version '1.3.0'
 
 jar {
     manifest {
@@ -91,9 +91,9 @@ test {
 }
 
 dependencies {
-    implementation 'org.wuerthner.score:score:1.3.0-SNAPSHOT'
-    implementation 'org.wuerthner.sport:sport:2.0.0-SNAPSHOT'
-    implementation 'org.wuerthner.ambitus:ambitusmodel:2.0.0-SNAPSHOT'
+    implementation 'org.wuerthner.score:score:1.3.0'
+    implementation 'org.wuerthner.sport:sport:2.0.0'
+    implementation 'org.wuerthner.ambitus:ambitusmodel:2.0.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
