@@ -352,6 +352,7 @@ public class PlayerToolBar implements PositionUpdater {
 
     public void updateToolbar() {
         int noOfTracks = scoreModel.getArrangement().getNumberOfActiveMidiTracks();
+        long caretPosition = scoreModel.getArrangement().getCaret();
 //        int staff = scoreModel.getSelection().getSelectedStaff();
 //        boolean hasSelection = !scoreModel.getSelection().getSelection().isEmpty();
 //        boolean hasSingleSelection = scoreModel.getSelection().hasSingleSelection();
@@ -369,6 +370,8 @@ public class PlayerToolBar implements PositionUpdater {
         toolMap.get("playSelection").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("export").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("stop").setEnabled(! notPlaying);
+        toolMap.get("caret").setEnabled(noOfTracks > 0 && notPlaying);
+        toolMap.get("rewindToCaret").setEnabled(noOfTracks > 0 && notPlaying && caretPosition>0);
         updatePosition();
     }
 }
