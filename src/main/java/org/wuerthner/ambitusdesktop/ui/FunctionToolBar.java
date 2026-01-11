@@ -726,67 +726,20 @@ public class FunctionToolBar {
         });
         functionToolbar.add(zoomBtn);
 
-//        // List (Multi-Project?)
-//        JButton listBtn = makeButton("toolbar/list", "Toggle Sheet/System", 24);
-//        listBtn.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                scoreModel.toggleList();
-//                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-//                updateToolbar();
-//            }
-//        });
-//        functionToolbar.add(listBtn);
+        // Tracklist
+        JButton trackListBtn = makeButton("toolbar/list", "Tracklist",24);
+        AbstractAction trackListAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new TrackListDialog(scoreModel, scoreUpdater, toolbarUpdater, content);
+            }
+        };
+        trackListBtn.addActionListener(trackListAction);
+        trackListBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK), "trackList");
+        trackListBtn.getActionMap().put("trackList", trackListAction);
+        toolMap.put("trackList", trackListBtn);
+        functionToolbar.add(trackListBtn);
 
-//        // Refresh
-//        JButton refreshBtn = makeButton("toolbar/refresh", 24);
-//        refreshBtn.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-//                updateToolbar();
-//            }
-//        });
-//        functionToolbar.add(refreshBtn);
-
-        // Markup
-//        JButton markupBtn = makeButton("toolbar/mark", "Toggle Markup", 24);
-//        markupBtn.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                List<Markup> list = scoreModel.getScoreBuilder().getScoreParameter().markup;
-//                ParameterDialog pd = new ParameterDialog(new String[]{"Select Markup Elements"},
-//                        new String[]{"Ambitus", "Attributes", "Parallels", "Intervals", "Crossings", "Lyrics", "Note Attributes", "Color Voices"},
-//                        new Object[]{
-//                                list.contains(Markup.AMBITUS),
-//                                list.contains(Markup.ATTRIBUTES),
-//                                list.contains(Markup.PARALLELS),
-//                                list.contains(Markup.INTERVALS),
-//                                list.contains(Markup.CROSSINGS),
-//                                list.contains(Markup.LYRICS),
-//                                list.contains(Markup.NOTE_ATTRIBUTES),
-//                                list.contains(Markup.COLOR_VOICES)
-//                        },
-//                        content);
-//                String[] parameters = pd.getParameters();
-//                boolean update = false;
-//                if (parameters != null) {
-//                    List<Markup> newList = new ArrayList<>();
-//                    if (Boolean.valueOf(parameters[0])) newList.add(Markup.AMBITUS);
-//                    if (Boolean.valueOf(parameters[1])) newList.add(Markup.ATTRIBUTES);
-//                    if (Boolean.valueOf(parameters[2])) newList.add(Markup.PARALLELS);
-//                    if (Boolean.valueOf(parameters[3])) newList.add(Markup.INTERVALS);
-//                    if (Boolean.valueOf(parameters[4])) newList.add(Markup.CROSSINGS);
-//                    if (Boolean.valueOf(parameters[5])) newList.add(Markup.LYRICS);
-//                    if (Boolean.valueOf(parameters[6])) newList.add(Markup.NOTE_ATTRIBUTES);
-//                    if (Boolean.valueOf(parameters[7])) newList.add(Markup.COLOR_VOICES);
-//                    update = !newList.equals(list);
-//                    scoreModel.getScoreBuilder().getScoreParameter().markup = newList;
-//                }
-//                if (update) {
-//                    scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.REBUILD));
-//                    updateToolbar();
-//                }
-//            }
-//        });
-//        functionToolbar.add(markupBtn);
 
         // Range
         JButton rangeBtn = makeButton("toolbar/bookmark", "Bookmark",24);
@@ -1165,6 +1118,7 @@ public class FunctionToolBar {
 //        toolMap.get("export").setEnabled(noOfTracks > 0 && notPlaying);
 //         toolMap.get("stop").setEnabled(! notPlaying);
         toolMap.get("range").setEnabled(noOfTracks > 0);
+        toolMap.get("trackList").setEnabled(noOfTracks > 0 && notPlaying);
         // updatePosition();
     }
 

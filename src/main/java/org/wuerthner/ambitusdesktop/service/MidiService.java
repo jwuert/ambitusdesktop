@@ -36,14 +36,15 @@ public class MidiService {
     // return midiExtractor;
     // }
 
-    public void play(Arrangement arrangement, AmbitusSelection selection, boolean selectionOnly, boolean record) {
-        play(arrangement, selection, selectionOnly, record, 100, -1, 0);
+    public void play(Arrangement arrangement, AmbitusSelection selection, boolean fromCaret, boolean selectionOnly, boolean record) {
+        play(arrangement, selection, fromCaret, selectionOnly, record, 100, -1, 0);
     }
 
-    public void play(Arrangement arrangement, AmbitusSelection selection, boolean selectionOnly, boolean record, int tempo, int exposedTrack, int exposedStrength) {
+    public void play(Arrangement arrangement, AmbitusSelection selection, boolean fromCaret, boolean selectionOnly, boolean record, int tempo, int exposedTrack, int exposedStrength) {
         if (!arrangement.getActiveMidiTrackList().isEmpty()) {
 
-            long startPosition = arrangement.getCaret();
+            long startPosition = fromCaret ? arrangement.getCaret() : arrangement.getBarOffsetPosition();
+
             long endPosition = 99999999999999L;
             if (selectionOnly && !selection.getSelection().isEmpty()) {
                 startPosition = selection.getSelection().get(0).getPosition();

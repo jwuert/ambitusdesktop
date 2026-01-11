@@ -39,6 +39,9 @@ public class ScoreKeyListener {
     private final String kDot = "dot";
     private final String kMute = "mute";
     private final String kZero = "zero";
+    private final String kZeroAlt = "zeroAlt";
+    private final String kZeroCtrl = "zeroCtrl";
+    private final String kZeroCtrlAlt = "zeroCtrlAlt";
     private final String kHome = "home";
 
 
@@ -70,6 +73,9 @@ public class ScoreKeyListener {
         add(scorePanel, kMute, KeyEvent.VK_M, KeyEvent.CTRL_DOWN_MASK);
         // player:
         add(scorePanel, kZero, KeyEvent.VK_NUMPAD0, 0);
+        add(scorePanel, kZeroAlt, KeyEvent.VK_NUMPAD0, KeyEvent.ALT_DOWN_MASK);
+        add(scorePanel, kZeroCtrl, KeyEvent.VK_NUMPAD0, KeyEvent.CTRL_DOWN_MASK);
+        add(scorePanel, kZeroCtrlAlt, KeyEvent.VK_NUMPAD0, KeyEvent.CTRL_DOWN_MASK+KeyEvent.ALT_DOWN_MASK);
         add(scorePanel, kHome, KeyEvent.VK_HOME, 0);
     }
 
@@ -172,11 +178,39 @@ public class ScoreKeyListener {
                     break;
                 case kZero:
                     if (MidiService.isRunning()) {
-                        // STOP
                         MidiService.stop();
                     } else {
-                        // PLAY
-                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,false);
+                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,false,false);
+                        new Thread(new ScorePlayer(panel, toolbarUpdater, positionUpdater)).start();
+                    }
+                    break;
+                case kZeroAlt:
+                    if (MidiService.isRunning()) {
+                        MidiService.stop();
+                    } else {
+                        int newTempo = scoreModel.getPlayTempo();
+                        int newExpose = scoreModel.getPlayExpose();
+                        int newStrength = scoreModel.getPlayStrength();
+                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,false, false, newTempo, newExpose, newStrength);
+                        new Thread(new ScorePlayer(panel, toolbarUpdater, positionUpdater)).start();
+                    }
+                    break;
+                case kZeroCtrl:
+                    if (MidiService.isRunning()) {
+                        MidiService.stop();
+                    } else {
+                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), true,false,false);
+                        new Thread(new ScorePlayer(panel, toolbarUpdater, positionUpdater)).start();
+                    }
+                    break;
+                case kZeroCtrlAlt:
+                    if (MidiService.isRunning()) {
+                        MidiService.stop();
+                    } else {
+                        int newTempo = scoreModel.getPlayTempo();
+                        int newExpose = scoreModel.getPlayExpose();
+                        int newStrength = scoreModel.getPlayStrength();
+                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), true,false, false, newTempo, newExpose, newStrength);
                         new Thread(new ScorePlayer(panel, toolbarUpdater, positionUpdater)).start();
                     }
                     break;

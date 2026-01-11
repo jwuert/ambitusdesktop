@@ -200,7 +200,7 @@ public class PlayerToolBar implements PositionUpdater {
         AbstractAction playAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,false);
+                midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,false,false);
                 new Thread(new ScorePlayer(content, toolbarUpdater, PlayerToolBar.this)).start();
                 updateToolbar();
             }
@@ -211,9 +211,63 @@ public class PlayerToolBar implements PositionUpdater {
         toolMap.put("play", playBtn);
         playerToolbar.add(playBtn);
 
-        // Play Config
-        JButton playConfBtn = makeButton("toolbar/playConfig", "Play Configuration",24);
-        AbstractAction playConfAction = new AbstractAction() {
+        // Play from Caret
+        JButton playCaretBtn = makeButton("toolbar/playCaret", "Play from Caret",24);
+        AbstractAction playCaretAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), true,false,false);
+                new Thread(new ScorePlayer(content, toolbarUpdater, PlayerToolBar.this)).start();
+                updateToolbar();
+            }
+        };
+        playCaretBtn.addActionListener(playCaretAction);
+        playCaretBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, KeyEvent.CTRL_DOWN_MASK), "playCaret");
+        playCaretBtn.getActionMap().put("playCaret", playCaretAction);
+        toolMap.put("playCaret", playCaretBtn);
+        playerToolbar.add(playCaretBtn);
+
+        // Play as Configured
+        JButton playAsConfiguredBtn = makeButton("toolbar/playConfig", "Play as Configured",24);
+        AbstractAction playAsConfiguredAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int newTempo = scoreModel.getPlayTempo();
+                int newExpose = scoreModel.getPlayExpose();
+                int newStrength = scoreModel.getPlayStrength();
+                midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,false, false, newTempo, newExpose, newStrength);
+                new Thread(new ScorePlayer(content, toolbarUpdater, PlayerToolBar.this)).start();
+                updateToolbar();
+            }
+        };
+        playAsConfiguredBtn.addActionListener(playAsConfiguredAction);
+        playAsConfiguredBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, KeyEvent.CTRL_DOWN_MASK + KeyEvent.ALT_DOWN_MASK), "playAsConfigured");
+        playAsConfiguredBtn.getActionMap().put("playAsConfigured", playAsConfiguredAction);
+        toolMap.put("playAsConfigured", playAsConfiguredBtn);
+        playerToolbar.add(playAsConfiguredBtn);
+
+        // Play as Configured from Caret
+        JButton playAsConfiguredFromCaretBtn = makeButton("toolbar/playAsConfiguredFromCaret", "Play as Configured from Caret",24);
+        AbstractAction playAsConfiguredFromCaretAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int newTempo = scoreModel.getPlayTempo();
+                int newExpose = scoreModel.getPlayExpose();
+                int newStrength = scoreModel.getPlayStrength();
+                midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), true,false, false, newTempo, newExpose, newStrength);
+                new Thread(new ScorePlayer(content, toolbarUpdater, PlayerToolBar.this)).start();
+                updateToolbar();
+            }
+        };
+        playAsConfiguredFromCaretBtn.addActionListener(playAsConfiguredFromCaretAction);
+        playAsConfiguredFromCaretBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, KeyEvent.ALT_DOWN_MASK), "playAsConfiguredFromCaret");
+        playAsConfiguredFromCaretBtn.getActionMap().put("playAsConfiguredFromCaret", playAsConfiguredFromCaretAction);
+        toolMap.put("playAsConfiguredFromCaret", playAsConfiguredFromCaretBtn);
+        playerToolbar.add(playAsConfiguredFromCaretBtn);
+
+        // Play Configuration
+        JButton playConfigurationBtn = makeButton("toolbar/preferences", "Play Configuration",24);
+        AbstractAction playConfigurationAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String tempo = "" + scoreModel.getPlayTempo();
@@ -241,7 +295,7 @@ public class PlayerToolBar implements PositionUpdater {
                         scoreModel.setPlayExpose(newExpose);
                         scoreModel.setPlayStrength(newStrength);
                         scoreModel.setPlayTempo(newTempo);
-                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false, false, newTempo, newExpose, newStrength);
+                        midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), true,false, false, newTempo, newExpose, newStrength);
                         new Thread(new ScorePlayer(content, toolbarUpdater, PlayerToolBar.this)).start();
                     } catch (Exception e2) {
                         e2.printStackTrace();
@@ -250,18 +304,18 @@ public class PlayerToolBar implements PositionUpdater {
                 updateToolbar();
             }
         };
-        playConfBtn.addActionListener(playConfAction);
+        playConfigurationBtn.addActionListener(playConfigurationAction);
         // playConfBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.ALT_DOWN_MASK), "playConfiguration");
-        playConfBtn.getActionMap().put("playConfiguration", playConfAction);
-        toolMap.put("playConfiguration", playConfBtn);
-        playerToolbar.add(playConfBtn);
+        playConfigurationBtn.getActionMap().put("playConfiguration", playConfigurationAction);
+        toolMap.put("playConfiguration", playConfigurationBtn);
+        playerToolbar.add(playConfigurationBtn);
 
         // Play Selection
         JButton playSelBtn = makeButton("toolbar/playSelection", "Play Selection",24);
         AbstractAction playSelAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), true, false);
+                midiService.play(scoreModel.getArrangement(), scoreModel.getSelection(), false,true, false);
                 new Thread(new ScorePlayer(content, toolbarUpdater, PlayerToolBar.this)).start();
                 updateToolbar();
             }
@@ -366,7 +420,10 @@ public class PlayerToolBar implements PositionUpdater {
         toolMap.get("next").setEnabled(noOfTracks > 0);
         toolMap.get("last").setEnabled(noOfTracks > 0);
         toolMap.get("play").setEnabled(noOfTracks > 0 && notPlaying);
+        toolMap.get("playCaret").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("playConfiguration").setEnabled(noOfTracks > 0 && notPlaying);
+        toolMap.get("playAsConfigured").setEnabled(noOfTracks > 0 && notPlaying);
+        toolMap.get("playAsConfiguredFromCaret").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("playSelection").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("export").setEnabled(noOfTracks > 0 && notPlaying);
         toolMap.get("stop").setEnabled(! notPlaying);

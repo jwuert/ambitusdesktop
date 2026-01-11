@@ -62,16 +62,18 @@ public class ExportService {
                         for (int exposedTrack = 0; exposedTrack < trackList.size(); exposedTrack++) {
                             int exposeStrength = scoreModel.getPlayStrength();
                             CwnTrack track = trackList.get(exposedTrack);
-                            String fileBase = composer + " - " + name + " - " + rangeName + track.getName() + " - " + tempo;
-                            File midiFile = createOutputFile(composer, name, track.getName(), fileBase + ".mid");
-                            writeMidi(arrangement, endPosition, midiFile, exposedTrack, exposeStrength, tempo);
-                            if (midiFile.exists()) {
-                                // mp3
-                                File mp3File = createOutputFile(composer, name, track.getName(), fileBase + ".mp3");
-                                writeMP3(arrangement, midiFile, mp3File);
-                                mp3File.renameTo(new File(mp3File.getAbsolutePath().replaceAll("_", " ")));
-                            } else {
-                                System.err.println("Failure in creation of midi file: " + midiFile);
+                            if (!track.getMute()) {
+                                String fileBase = composer + " - " + name + " - " + rangeName + track.getName() + " - " + tempo;
+                                File midiFile = createOutputFile(composer, name, track.getName(), fileBase + ".mid");
+                                writeMidi(arrangement, endPosition, midiFile, exposedTrack, exposeStrength, tempo);
+                                if (midiFile.exists()) {
+                                    // mp3
+                                    File mp3File = createOutputFile(composer, name, track.getName(), fileBase + ".mp3");
+                                    writeMP3(arrangement, midiFile, mp3File);
+                                    mp3File.renameTo(new File(mp3File.getAbsolutePath().replaceAll("_", " ")));
+                                } else {
+                                    System.err.println("Failure in creation of midi file: " + midiFile);
+                                }
                             }
                         }
                     }
