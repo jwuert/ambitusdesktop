@@ -20,10 +20,8 @@ import org.wuerthner.sport.operation.Transaction;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ScoreModel {
     public static final String FILE_EXTENSION = "amb";
@@ -662,6 +660,7 @@ public class ScoreModel {
         durationTypeList.add(DurationType.TRIDOTTED);
         durationTypeList.add(DurationType.TRIPLET);
         durationTypeList.add(DurationType.QUINTUPLET);
+        Map<Long,String> rangeMap = arrangement.getRangeList().stream().collect(Collectors.toMap(nr -> nr.start, nr -> nr.name));
         ScoreParameter scoreParameter = new ScoreParameter(
                 getPPQ(),
                 arrangement.getResolutionInTicks(),
@@ -669,7 +668,7 @@ public class ScoreModel {
                 arrangement.getStretchFactor(),
                 Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS | Score.MERGE_RESTS_IN_EMPTY_BARS,
                 durationTypeList,
-                new ArrayList<Markup.Type>(markup), 0, arrangement.getCaret());
+                new ArrayList<Markup.Type>(markup), 0, arrangement.getCaret(), rangeMap);
         return scoreParameter;
     }
 
@@ -678,11 +677,14 @@ public class ScoreModel {
             getScoreParameter().setFlags(arrangement.getFlags());
             int stretchFactor = arrangement.getStretchFactor();
             int groupLevel = arrangement.getAttributeValue(Arrangement.groupLevel);
+            Map<Long,String> rangeMap = arrangement.getRangeList().stream().collect(Collectors.toMap(nr -> nr.start, nr -> nr.name));
             getScoreParameter().setDisplayStretchFactor(stretchFactor);
             getScoreParameter().setMetricLevel(groupLevel);
             getScoreParameter().setResolutionInTicks(arrangement.getResolutionInTicks());
             getScoreParameter().setPPQ(arrangement.getPPQ());
             getScoreParameter().setFilename(this.file == null ? "" : this.file.getName());
+            getScoreParameter().setRangeMap(rangeMap);
+            getScoreParameter().setCaret(arrangement.getCaret());
             boolean bidotted = arrangement.getAttributeValue(Arrangement.durationBiDotted);
             if (bidotted) {
                 if (!getScoreParameter().durationTypeList.contains(DurationType.BIDOTTED)) {

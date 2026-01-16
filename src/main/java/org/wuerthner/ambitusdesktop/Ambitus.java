@@ -17,7 +17,6 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
     static int HEIGHT = 1024; //1024;
 
     private final ScorePanel content;
-    private final JPanel rangePanel;
     private final ScoreModel scoreModel = new ScoreModel(WIDTH);
     private final PlayerToolBar playerToolBar;
 
@@ -34,13 +33,9 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
         content = new ScorePanel(scoreModel, this, this);
         JComponent toolbar = makeFunctionToolBar();
 
-        rangePanel = new JPanel();
-        rangePanel.setPreferredSize(new Dimension(200, HEIGHT));
-        rangePanel.setVisible(false);
         frame.setLayout(new BorderLayout());
         frame.getContentPane().add(toolbar, BorderLayout.PAGE_START);
         frame.getContentPane().add(content, BorderLayout.CENTER);
-        frame.getContentPane().add(rangePanel, BorderLayout.EAST);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         frame.setSize(WIDTH, HEIGHT);
@@ -114,40 +109,9 @@ public class Ambitus implements PanelUpdater, ToolbarUpdater, ScoreUpdater {
     }
 
     public void updatePanel() {
-        //
-        // RANGE BUTTONS
-        //
-        List<NamedRange> rangeList = scoreModel.getArrangement().getAttributeValue(Arrangement.rangeList);
-        if (rangePanel!=null) {
-            rangePanel.removeAll();
-            if (rangeList.isEmpty()) {
-                rangePanel.setVisible(false);
-            } else {
-                rangePanel.setVisible(true);
-                for (NamedRange range : rangeList) {
-                    JButton rangeBtn = new JButton(range.name);
-                    rangeBtn.setPreferredSize(new Dimension(180, 20));
-                    rangeBtn.setFocusPainted(false);
-                    AbstractAction rangeAction = new AbstractAction() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-//                            int max = scoreModel.getArrangement().getNumberOfActiveMidiTracks() - 1;
-//                            scoreModel.select(
-//                                    new Location(null, range.start, 0, 0, 0, false, 0, 0, 0),
-//                                    new Location(null, range.end, 0, max, 0, false, 0, 0, 0), true);
-                            Trias trias = PositionTools.getTrias(scoreModel.getTrackList().get(0), range.start);
-                            int offset = (trias.bar - 1 < 0 ? trias.bar : trias.bar);
-                            scoreModel.getArrangement().setTransientBarOffset(offset);
-                            scoreModel.getScoreParameter().setBarOffset(offset);
-                            content.updateScore(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
-                            updateToolbar();
-                        }
-                    };
-                    rangeBtn.addActionListener(rangeAction);
-                    rangePanel.add(rangeBtn);
-                }
-            }
-            rangePanel.updateUI();
+        // rangemenu
+        if (functionToolBar!=null) {
+            functionToolBar.updateRangeMenu();
         }
         // toolbar
         updateToolbar();

@@ -454,6 +454,7 @@ public class AmbitusScoreCanvas implements ScoreCanvas {
         fontMap.put("barNumber", new Font("Arial", Font.ITALIC, (int)(9*zoom)));
         fontMap.put("timeSignature", new Font("Arial", Font.BOLD, (int)(13*zoom)));
         fontMap.put("text", new Font("Arial", Font.PLAIN, (int)(9*zoom)));
+        fontMap.put("rangeName", new Font("Arial", Font.BOLD, (int)(10*zoom)));
         fontMap.put("nole", new Font("Arial", Font.ITALIC, (int)(7*zoom)));
         fontMap.put("track", new Font("Arial", Font.PLAIN, (int)(18*zoom)));
         fontMap.put("trackMuted", new Font("Arial", Font.PLAIN, (int)(18*zoom)));

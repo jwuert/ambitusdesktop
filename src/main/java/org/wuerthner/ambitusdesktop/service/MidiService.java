@@ -51,7 +51,7 @@ public class MidiService {
                 endPosition = selection.getSelection().get(selection.getSelection().size()-1).getPosition()
                     +selection.getSelection().get(selection.getSelection().size()-1).getDuration();
             }
-            Sequence sequence = sequenceService.createSequence(arrangement, endPosition, selection, exposedTrack, exposedStrength, tempo);
+            Sequence sequence = sequenceService.createSequence(arrangement, startPosition, endPosition, selection, exposedTrack, exposedStrength, tempo);
             play(arrangement, startPosition, endPosition, sequence, initialSleep, record);
         }
     }

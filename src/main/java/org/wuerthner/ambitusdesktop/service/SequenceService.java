@@ -14,9 +14,9 @@ import javax.sound.midi.*;
 import java.util.List;
 
 public class SequenceService {
-    public Sequence createSequence(Arrangement arrangement, long endPosition, AmbitusSelection selection, int exposedTrack, int exposedStrength, int tempo) {
+    public Sequence createSequence(Arrangement arrangement, long startPosition, long endPosition, AmbitusSelection selection, int exposedTrack, int exposedStrength, int tempo) {
         Sequence sequence = null;
-        long startPosition = 0;
+        // long startPosition = 0;
         boolean playAll = (endPosition == 0);
         boolean hasExposedTracks = exposedTrack >= 0;
         double exposeFactor = 1.0 + 0.2 * exposedStrength;
@@ -25,7 +25,7 @@ public class SequenceService {
             sequence = new Sequence(Sequence.PPQ, arrangement.getPPQ());
             Track tempoTrack = sequence.createTrack();
             List<CwnTrack> trackList = arrangement.getTrackList();
-            startPosition = PositionTools.getPosition(arrangement.getFirstActiveMidiTrack().get(), new Trias(arrangement.getBarOffset(),0,0));
+            // startPosition = PositionTools.getPosition(arrangement.getFirstActiveMidiTrack().get(), new Trias(arrangement.getBarOffset(),0,0));
             // startPosition = arrangement.getCaret();
             for (int trackNo = 0; trackNo < trackList.size(); trackNo++) {
                 if (trackList.get(trackNo) instanceof MidiTrack) {

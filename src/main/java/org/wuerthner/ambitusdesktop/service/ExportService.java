@@ -48,7 +48,7 @@ public class ExportService {
                     if (exposeValue == 0) {
                         String fileBase = composer + " - " + name + " - " + rangeName + " - " + tempo;
                         File midiFile = createOutputFile(composer, name, fileBase + ".mid");
-                        writeMidi(arrangement, endPosition, midiFile, -1, 0, tempo);
+                        writeMidi(arrangement, range.start, endPosition, midiFile, -1, 0, tempo);
                         if (midiFile.exists()) {
                             // mp3
                             File mp3File = createOutputFile(composer, name, fileBase + ".mp3");
@@ -65,7 +65,7 @@ public class ExportService {
                             if (!track.getMute()) {
                                 String fileBase = composer + " - " + name + " - " + rangeName + track.getName() + " - " + tempo;
                                 File midiFile = createOutputFile(composer, name, track.getName(), fileBase + ".mid");
-                                writeMidi(arrangement, endPosition, midiFile, exposedTrack, exposeStrength, tempo);
+                                writeMidi(arrangement, range.start, endPosition, midiFile, exposedTrack, exposeStrength, tempo);
                                 if (midiFile.exists()) {
                                     // mp3
                                     File mp3File = createOutputFile(composer, name, track.getName(), fileBase + ".mp3");
@@ -84,9 +84,9 @@ public class ExportService {
         }
     }
 
-    private void writeMidi(Arrangement arrangement, long endPosition, File outputFile, int exposedTrack, int exposeStrength, int tempo) {
+    private void writeMidi(Arrangement arrangement, long startPosition, long endPosition, File outputFile, int exposedTrack, int exposeStrength, int tempo) {
         try {
-            Sequence sequence = sequenceService.createSequence(arrangement, endPosition, null, exposedTrack, exposeStrength, tempo);
+            Sequence sequence = sequenceService.createSequence(arrangement, startPosition, endPosition, null, exposedTrack, exposeStrength, tempo);
             MidiSystem.write(sequence, 1, outputFile);
         } catch (Exception e) {
             e.printStackTrace();

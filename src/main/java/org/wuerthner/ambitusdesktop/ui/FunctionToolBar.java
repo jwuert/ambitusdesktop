@@ -6,11 +6,9 @@ import org.wuerthner.ambitus.service.*;
 import org.wuerthner.ambitus.tool.MidiImportService;
 import org.wuerthner.ambitus.type.NamedRange;
 import org.wuerthner.ambitusdesktop.*;
-import org.wuerthner.ambitusdesktop.service.ExportService;
 import org.wuerthner.ambitusdesktop.service.MidiService;
 import org.wuerthner.ambitusdesktop.service.PrintService;
 import org.wuerthner.cwn.api.CwnTrack;
-import org.wuerthner.cwn.api.Markup;
 import org.wuerthner.cwn.api.Trias;
 import org.wuerthner.cwn.position.PositionTools;
 import org.wuerthner.cwn.score.ScoreUpdate;
@@ -33,7 +31,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FunctionToolBar {
     private final JToolBar functionToolbar;
@@ -44,6 +41,9 @@ public class FunctionToolBar {
     private final ScoreUpdater scoreUpdater;
     private final ToolbarUpdater toolbarUpdater;
     private final PanelUpdater panelUpdater;
+    private final JPopupMenu rangePopupMenu = new JPopupMenu();
+    private final String createBookmarkLabel = "Create Bookmark";
+    private final JMenuItem createRangeOption = new JMenuItem(createBookmarkLabel);
     private JFileChooser fileChooser = null;
     private RecentFileChooser.RecentFileList recentFileList = null;
 
@@ -740,31 +740,48 @@ public class FunctionToolBar {
         toolMap.put("trackList", trackListBtn);
         functionToolbar.add(trackListBtn);
 
-
+        // Range Action Listener
+        ActionListener rangeActionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (createBookmarkLabel.equals(e.getActionCommand())) {
+                    System.out.println(e.getID());
+                    System.out.println(e.getSource());
+                    MidiTrack track = scoreModel.getArrangement().getActiveMidiTrackList().get(0);
+                    long startNo = scoreModel.getSelection().isEmpty() ? scoreModel.getArrangement().getBarOffsetPosition() : scoreModel.getSelection().getSelection().get(0).getPosition();
+                    // long endNo = scoreModel.getSelection().getSelection().get(scoreModel.getSelection().getSelection().size()-1).getPosition();
+                    Trias startTrias = PositionTools.getTrias(track, startNo);
+                    // Trias endTrias = PositionTools.getTrias(track, endNo);
+                    ParameterDialog pd = new ParameterDialog(new String[]{"Create Range"},
+                            new String[]{"Name", "Position"},
+                            new Object[]{"", startTrias.toString()},
+                            content);
+                    String[] parameters = pd.getParameters();
+                    if (parameters != null) {
+                        String name = parameters[0];
+                        long start = PositionTools.getPosition(track, new Trias(parameters[1]));
+                        // long end = PositionTools.getPosition(track, new Trias(parameters[2]));
+                        scoreModel.getArrangement().addRange(new NamedRange(name, start));
+                        // panelUpdater.updatePanel();
+                        updateRangeMenu();
+                        updateToolbar();
+                        scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+                    }
+                } else {
+                    // Range Selection
+                }
+            }
+        };
+        // Range Menu Entry
+        rangePopupMenu.add(createRangeOption);
+        rangePopupMenu.addSeparator();
+        createRangeOption.addActionListener(rangeActionListener);
         // Range
         JButton rangeBtn = makeButton("toolbar/bookmark", "Bookmark",24);
         AbstractAction rangeAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                MidiTrack track = scoreModel.getArrangement().getActiveMidiTrackList().get(0);
-                long startNo = scoreModel.getSelection().isEmpty() ? scoreModel.getArrangement().getBarOffsetPosition() : scoreModel.getSelection().getSelection().get(0).getPosition();
-                // long endNo = scoreModel.getSelection().getSelection().get(scoreModel.getSelection().getSelection().size()-1).getPosition();
-                Trias startTrias = PositionTools.getTrias(track, startNo);
-                // Trias endTrias = PositionTools.getTrias(track, endNo);
-
-                ParameterDialog pd = new ParameterDialog(new String[]{"Create Range"},
-                        new String[]{"Name", "Position"},
-                        new Object[]{"", startTrias.toString()},
-                        content);
-                String[] parameters = pd.getParameters();
-                if (parameters!=null) {
-                    String name = parameters[0];
-                    long start = PositionTools.getPosition(track, new Trias(parameters[1]));
-                    // long end = PositionTools.getPosition(track, new Trias(parameters[2]));
-                    scoreModel.getArrangement().addRange(new NamedRange(name, start));
-                    panelUpdater.updatePanel();
-                    updateToolbar();
-                }
+                rangePopupMenu.show(rangeBtn,0, rangeBtn.getHeight());
             }
         };
         rangeBtn.addActionListener(rangeAction);
@@ -945,6 +962,37 @@ public class FunctionToolBar {
                 }
             });
             functionToolbar.add(debugScoreBtn);
+        }
+    }
+
+    public void updateRangeMenu() {
+        List<NamedRange> rangeList = scoreModel.getArrangement().getAttributeValue(Arrangement.rangeList);
+        rangeList.sort(new Comparator<NamedRange>() {
+            @Override
+            public int compare(NamedRange range1, NamedRange range2) {
+                return (int) (range1.start - range2.start);
+            }
+        });
+        rangePopupMenu.removeAll();
+        rangePopupMenu.add(createRangeOption);
+        rangePopupMenu.addSeparator();
+        for (NamedRange range : rangeList) {
+            JMenuItem rangeItem = new JMenuItem(range.name);
+            rangeItem.setPreferredSize(new Dimension(180, 20));
+            rangeItem.setFocusPainted(false);
+            AbstractAction rangeAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Trias trias = PositionTools.getTrias(scoreModel.getTrackList().get(0), range.start);
+                    int offset = (trias.bar - 1 < 0 ? trias.bar : trias.bar);
+                    scoreModel.getArrangement().setTransientBarOffset(offset);
+                    scoreModel.getScoreParameter().setBarOffset(offset);
+                    scoreUpdater.update(new ScoreUpdate(ScoreUpdate.Type.RELAYOUT));
+                    updateToolbar();
+                }
+            };
+            rangeItem.addActionListener(rangeAction);
+            rangePopupMenu.add(rangeItem);
         }
     }
 

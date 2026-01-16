@@ -2,6 +2,7 @@ package org.wuerthner.ambitusdesktop.service;
 
 import org.wuerthner.ambitus.model.Arrangement;
 import org.wuerthner.ambitus.model.MidiTrack;
+import org.wuerthner.ambitus.type.NamedRange;
 import org.wuerthner.ambitusdesktop.ScoreModel;
 import org.wuerthner.cwn.api.CwnTrack;
 import org.wuerthner.cwn.api.DurationType;
@@ -11,10 +12,8 @@ import org.wuerthner.sport.api.ModelElement;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class PrintService {
@@ -90,9 +89,11 @@ public class PrintService {
             int flags = arrangement.getFlags();
             List<DurationType> typeList = scoreModel.getScoreParameter().durationTypeList;
             long endPosition = arrangement.findLastPositionBarStart();
+            Map<Long,String> rangeMap = arrangement.getRangeList().stream().collect(Collectors.toMap(nr -> nr.start, nr -> nr.name));
+
             // ScoreParameter scoreParameter = new ScoreParameter(startDisplayPosition, endDisplayPosition, ppq, resolutionInTicks, groupLevel, stretchFactor, Score.ALLOW_DOTTED_RESTS | Score.SPLIT_RESTS);
             ScoreParameter scoreParameter = new ScoreParameter(ppq, resolutionInTicks, groupLevel, stretchFactor, flags,
-                    typeList, new ArrayList<>(), 0, arrangement.getCaret());
+                    typeList, new ArrayList<>(), 0, arrangement.getCaret(), rangeMap);
 
             ScorePrinter printer = new ScorePrinter();
             String lyString = printer.print(title, subtitle, composer, autoBeam, scoreParameter, trackList, endPosition);
